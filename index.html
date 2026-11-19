@@ -119,6 +119,13 @@ button{min-height:40px;cursor:pointer}
 .yt-help{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:none}
 .yt-help.on{display:block}
 .yt-help p{margin:0 0 10px;font-size:14px;font-weight:500;line-height:1.55}
+.yt-help .btn-row{margin:0}
+a.btn{text-decoration:none}
+.yt-fallback{margin-top:12px;background:var(--panel);border:1px solid var(--accent);border-radius:8px;padding:12px 14px;display:none}
+.yt-fallback.on{display:block}
+.yt-fallback img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;display:block;background:#000;margin-bottom:10px}
+.yt-fallback p{margin:0 0 10px;font-size:14px;font-weight:500;line-height:1.55}
+.yt-fallback .btn-row{margin:0}
 .drop{display:block;margin:14px 20px 0;border:1.5px dashed var(--line-strong);border-radius:10px;padding:18px 16px;text-align:center;background:rgba(255,77,157,.05);cursor:pointer}
 .drop:hover{border-color:var(--accent)}
 .drop strong{display:block;font-family:"Inter",sans-serif;font-size:17px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
@@ -476,9 +483,20 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
       </div>
       <p class="yt-status" id="ytStatus" role="status"></p>
       <div class="yt-preview" id="ytPreview"><iframe id="ytFrame" title="YouTube video preview" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+      <div class="yt-fallback" id="ytFallback">
+        <img id="ytThumb" alt="YouTube video thumbnail">
+        <p>This video can't play inside the page — YouTube blocked the preview (embedding is off for it, which is common on live streams). Open it on YouTube, download the video, then drop the file below to clip.</p>
+        <div class="btn-row">
+          <a class="btn accent" id="ytOpenBtn" href="https://www.youtube.com" target="_blank" rel="noopener">Open on YouTube</a>
+          <button class="btn" id="ytFallbackFileBtn" type="button">Choose file</button>
+        </div>
+      </div>
       <div class="yt-help" id="ytHelp">
         <p>Drop the file below to clip.</p>
-        <button class="btn accent" id="ytDropBtn" type="button">Choose file</button>
+        <div class="btn-row">
+          <a class="btn" id="ytOpenBtn2" href="https://www.youtube.com" target="_blank" rel="noopener">Open on YouTube</a>
+          <button class="btn accent" id="ytDropBtn" type="button">Choose file</button>
+        </div>
       </div>
     </div>
 
@@ -722,7 +740,7 @@ function loadFile(file){
   video.src=URL.createObjectURL(file); video.load();
   hasVideo=true; stage.classList.remove('no-video'); syncGuides();
   $('videoEmpty').style.display='none'; $('liveDot').style.display='block';
-  if(ytId){ var st=$('ytStatus'); st.className='yt-status ok'; st.textContent='Ready'; $('ytHelp').classList.remove('on'); }
+  if(ytId){ var st=$('ytStatus'); st.className='yt-status ok'; st.textContent='Ready'; $('ytHelp').classList.remove('on'); hideYtFallback(); }
   applyAudioPreview(); updateOverlays(); toast('Loaded: '+file.name);
 }
 /* ---------- YOUTUBE LINK ---------- */
@@ -736,16 +754,46 @@ function ytIdFromUrl(raw){
   try{ var u=new URL(s); if(u.hostname.indexOf('youtube')>-1){ var v=u.searchParams.get('v'); if(v&&/^[A-Za-z0-9_-]{11}$/.test(v)) return v; } }catch(e){}
   return '';
 }
+var ytPlayer=null, ytPlayerReady=false, ytLoadSeq=0;
+function hideYtFallback(){ $('ytFallback').classList.remove('on'); }
+function showYtFallback(id){
+  $('ytPreview').classList.remove('on');
+  var img=$('ytThumb');
+  img.onerror=function(){ img.style.display='none'; };
+  img.style.display='block';
+  img.src='https://i.ytimg.com/vi/'+id+'/hqdefault.jpg';
+  $('ytOpenBtn').href='https://www.youtube.com/watch?v='+id;
+  $('ytFallback').classList.add('on');
+  $('ytHelp').classList.remove('on');
+  var st=$('ytStatus'); st.className='yt-status err'; st.textContent='Preview blocked by YouTube';
+}
 function loadYouTube(){
   var raw=$('ytInput').value, id=ytIdFromUrl(raw), st=$('ytStatus');
-  if(!raw.trim()){ st.className='yt-status'; st.textContent=''; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); return; }
-  if(!id){ st.className='yt-status err'; st.textContent='Invalid link'; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); ytId=''; return; }
+  if(!raw.trim()){ st.className='yt-status'; st.textContent=''; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); return; }
+  if(!id){ st.className='yt-status err'; st.textContent='Invalid link'; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); ytId=''; return; }
   ytId=id;
-  $('ytFrame').src='https://www.youtube-nocookie.com/embed/'+id+'?rel=0';
+  hideYtFallback();
+  $('ytOpenBtn2').href='https://www.youtube.com/watch?v='+id;
   $('ytPreview').classList.add('on');
   st.className='yt-status ok'; st.textContent='Loaded';
   $('ytHelp').classList.add('on');
   toast('YouTube video loaded');
+  var seq=++ytLoadSeq;
+  if(ytPlayer&&ytPlayer.loadVideoById){
+    try{ ytPlayer.loadVideoById(id); return; }catch(e){}
+  }
+  $('ytFrame').src='https://www.youtube.com/embed/'+id+'?rel=0&enablejsapi=1&playsinline=1';
+  if(typeof loadYtApi==='function'){
+    loadYtApi().then(function(){
+      if(seq!==ytLoadSeq||ytPlayer||!window.YT||!YT.Player) return;
+      try{
+        ytPlayer=new YT.Player('ytFrame',{events:{
+          onReady:function(){ ytPlayerReady=true; },
+          onError:function(){ if(seq===ytLoadSeq) showYtFallback(id); }
+        }});
+      }catch(e){ ytPlayer=null; }
+    });
+  }
 }
 var ytTimer=null;
 $('ytLoadBtn').addEventListener('click',loadYouTube);
@@ -753,6 +801,7 @@ $('ytInput').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.prev
 $('ytInput').addEventListener('paste',function(){ setTimeout(loadYouTube,60); });
 $('ytInput').addEventListener('input',function(){ clearTimeout(ytTimer); var id=ytIdFromUrl(this.value); if(id&&id!==ytId){ ytTimer=setTimeout(loadYouTube,500); } });
 $('ytDropBtn').addEventListener('click',function(){ var dz=$('dropZone'); dz.scrollIntoView({behavior:'smooth',block:'center'}); setTimeout(function(){ fileInput.click(); },350); });
+$('ytFallbackFileBtn').addEventListener('click',function(){ var dz=$('dropZone'); dz.scrollIntoView({behavior:'smooth',block:'center'}); setTimeout(function(){ fileInput.click(); },350); });
 
 fileInput.addEventListener('change',function(){loadFile(this.files[0]);});
 $('videoEmpty').addEventListener('click',function(){ fileInput.click(); });
@@ -1724,7 +1773,7 @@ async function loadLive(){
     try{ livePlayer.loadVideoById(id); }catch(e){}
     toast('Watching live'); return;
   }
-  frame.src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&enablejsapi=1&rel=0';
+  frame.src='https://www.youtube.com/embed/'+id+'?autoplay=1&enablejsapi=1&rel=0';
   toast('Watching live');
   await loadYtApi();
   if(window.YT&&YT.Player&&!livePlayer){
