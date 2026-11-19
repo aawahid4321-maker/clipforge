@@ -46,7 +46,7 @@ button{min-height:40px;cursor:pointer}
 .stack{display:flex;flex-direction:column;gap:20px;min-width:0}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);min-width:0}
 .card-h{padding:18px 20px 0;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
-.card-h h2{font-family:"Anton","Inter",sans-serif;font-size:17.5px;font-weight:400;letter-spacing:.03em;text-transform:uppercase;margin:0;line-height:1.3}
+.card-h h2{font-family:"Inter",sans-serif;font-size:17.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;margin:0;line-height:1.3}
 .card-h h2 .num{color:var(--accent);font-family:"JetBrains Mono",monospace;font-size:12.5px;font-weight:600;margin-right:8px}
 .card-sub{font-size:13px;color:var(--muted);margin:4px 0 0;line-height:1.5}
 .badge{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 8px;border-radius:6px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);white-space:nowrap;font-family:"JetBrains Mono",monospace}
@@ -78,7 +78,7 @@ button{min-height:40px;cursor:pointer}
 @media(max-width:600px){.fmt-options{grid-template-columns:repeat(2,1fr)}}
 .fmt-opt{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:14px;text-align:left;border:1px solid var(--line);border-radius:10px;background:var(--panel);cursor:pointer;color:var(--text);min-height:104px;transition:border-color .15s,background .15s}
 .fmt-opt:hover{border-color:var(--line-strong)}
-.fmt-opt strong{font-family:"Anton","Inter",sans-serif;font-size:15.5px;font-weight:400;letter-spacing:.02em;text-transform:uppercase;line-height:1.25}
+.fmt-opt strong{font-family:"Inter",sans-serif;font-size:15.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;line-height:1.25}
 .fmt-opt small{font-size:12.5px;font-weight:500;color:var(--muted);font-family:"JetBrains Mono",monospace}
 .fmt-opt.active{border-color:transparent;background:linear-gradient(135deg,#ff5da6,#e044c8);box-shadow:0 4px 18px rgba(255,77,157,.35);color:#fff}
 .fmt-opt.active small{color:#ffe3f1}
@@ -121,7 +121,7 @@ button{min-height:40px;cursor:pointer}
 .yt-help p{margin:0 0 10px;font-size:14px;font-weight:500;line-height:1.55}
 .drop{display:block;margin:14px 20px 0;border:1.5px dashed var(--line-strong);border-radius:10px;padding:18px 16px;text-align:center;background:rgba(255,77,157,.05);cursor:pointer}
 .drop:hover{border-color:var(--accent)}
-.drop strong{display:block;font-family:"Anton","Inter",sans-serif;font-size:17px;font-weight:400;letter-spacing:.02em;text-transform:uppercase}
+.drop strong{display:block;font-family:"Inter",sans-serif;font-size:17px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
 .drop span{color:var(--muted);font-size:13px;font-weight:500;display:block;margin-top:3px}
 .drop input{display:none}
 
@@ -131,10 +131,10 @@ button{min-height:40px;cursor:pointer}
 .stage video{width:100%;height:100%;object-fit:cover;background:transparent;display:block}
 .video-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--muted);z-index:3;font-size:14px;line-height:1.55;cursor:pointer}
 .stage.no-video{cursor:pointer}
-.video-empty b{color:var(--text);font-family:"Anton","Inter",sans-serif;font-size:18px;font-weight:400;letter-spacing:.03em;text-transform:uppercase;display:block;margin-bottom:4px}
+.video-empty b{color:var(--text);font-family:"Inter",sans-serif;font-size:18px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;display:block;margin-bottom:4px}
 .video-empty .btn{margin-top:12px;min-height:46px;padding:11px 22px;font-size:15px}
 .video-empty span{display:block;margin-top:10px;font-size:12.5px;font-weight:500}
-.cap-overlay{position:absolute;left:50%;transform:translateX(-50%);bottom:9%;width:94%;text-align:center;display:none;z-index:8;pointer-events:none;font-family:"Pricedown Bl","Anton",sans-serif;font-weight:900;font-size:clamp(24px,5.2vw,46px);line-height:1.16;letter-spacing:.015em;text-transform:uppercase}
+.cap-overlay{position:absolute;left:50%;transform:translateX(-50%);bottom:9%;width:94%;text-align:center;display:none;z-index:8;pointer-events:none;font-family:"Pricedown Bl","Inter",sans-serif;font-weight:900;font-size:clamp(24px,5.2vw,46px);line-height:1.16;letter-spacing:.015em;text-transform:uppercase}
 .cap-overlay.on{display:block}
 .cap-w{display:inline-block;color:#ff4d9d;-webkit-text-stroke:2px #150430;text-shadow:3px 3px 0 #150430,-1px -1px 0 #150430,1px -1px 0 #150430,-1px 1px 0 #150430,0 5px 14px rgba(0,0,0,.55);transition:transform .12s ease,color .12s ease;margin:0 .14em}
 .cap-w.hot{color:#fff;background:linear-gradient(135deg,#ff5da6,#e044c8);-webkit-text-stroke:2px #150430;border-radius:.18em;padding:0 .14em;margin:0 .02em;transform:scale(1.14) rotate(-1.5deg);box-shadow:0 4px 16px rgba(224,68,200,.55);animation:capPop .22s ease}
@@ -207,7 +207,7 @@ canvas#wave{width:100%;height:78px;background:var(--panel2);border-radius:8px;di
 .moment,.clip-item{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;gap:12px;background:var(--panel);align-items:flex-start}
 .thumb{width:92px;height:58px;border-radius:6px;background:var(--panel2);object-fit:cover;flex-shrink:0}
 .moment-main,.clip-main{flex:1;min-width:0}
-.moment-main b,.clip-main b{font-family:"Anton","Inter",sans-serif;font-size:15px;font-weight:400;letter-spacing:.02em;text-transform:uppercase;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.moment-main b,.clip-main b{font-family:"Inter",sans-serif;font-size:15px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .moment-main span,.clip-main span{font-size:12px;color:var(--muted);font-family:"JetBrains Mono",monospace}
 .tagrow{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
 .tag{font-size:10.5px;font-weight:600;padding:3px 7px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
@@ -966,7 +966,7 @@ function roundRectPath(c,x,y,w,h,r){ r=Math.min(r,w/2,h/2); c.beginPath(); c.mov
 function drawBurnCaption(cx,cap,dims,now){
   var words=capWords(cap.text); if(!words.length) return;
   var fs=Math.max(30,Math.round(dims.w*0.088));
-  cx.font='900 '+fs+'px "Pricedown Bl","Anton",sans-serif';
+  cx.font='900 '+fs+'px "Pricedown Bl","Inter",sans-serif';
   var spaceW=cx.measureText(' ').width, maxW=dims.w*0.92, lines=[], cur=[], curW=0, i, ww;
   for(i=0;i<words.length;i++){ ww=cx.measureText(words[i].toUpperCase()).width; if(cur.length && curW+spaceW+ww>maxW){ lines.push(cur); cur=[]; curW=0; } if(cur.length) curW+=spaceW; cur.push(i); curW+=ww; }
   if(cur.length) lines.push(cur);
@@ -986,11 +986,11 @@ function drawBurnCaption(cx,cap,dims,now){
         cx.save(); cx.translate(x+wdt/2,y); cx.rotate(-0.026);
         roundRectPath(cx,-wdt/2-fs*0.14,-fs*0.86,wdt+fs*0.28,fs*1.06,fs*0.16); cx.fillStyle=g; cx.fill();
         cx.lineWidth=Math.max(3,fs*0.075); cx.strokeStyle='#150430'; cx.stroke();
-        cx.font='900 '+Math.round(fs*1.14)+'px "Pricedown Bl","Anton",sans-serif';
+        cx.font='900 '+Math.round(fs*1.14)+'px "Pricedown Bl","Inter",sans-serif';
         cx.lineWidth=Math.max(3,fs*0.11); cx.strokeStyle='#150430'; cx.strokeText(w,-wdt/2,0);
         cx.fillStyle='#ffffff'; cx.fillText(w,-wdt/2,0);
         cx.restore();
-        cx.font='900 '+fs+'px "Pricedown Bl","Anton",sans-serif';
+        cx.font='900 '+fs+'px "Pricedown Bl","Inter",sans-serif';
       } else {
         cx.lineWidth=Math.max(3,fs*0.13); cx.strokeStyle='#150430';
         cx.strokeText(w,x,y+fs*0.045); cx.strokeText(w,x,y);
