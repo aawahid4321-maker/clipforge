@@ -283,6 +283,10 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
 .live-moment-note{width:100%;margin-top:8px;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--stage);font-size:13px;min-height:36px;color:var(--text)}
 .live-moment-note::placeholder{color:var(--faint)}
 .live-moment-btns{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.clip-len-custom{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:10px}
+.clip-len-custom label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;flex-direction:column;gap:6px;flex:1;min-width:140px}
+.clip-len-custom input{width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--stage);font-family:"JetBrains Mono",monospace;font-size:15px;font-weight:600;min-height:42px;color:var(--text)}
+
 
 /* ---------- MOBILE ---------- */
 @media(max-width:720px){
@@ -362,7 +366,7 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
   .live-moment-btns .small-btn{flex:1}
 
   /* 16px inputs stop iOS auto-zoom on focus */
-  .yt-row input,.text-input,select,textarea,.custom-row input,.live-moment-note{font-size:16px}
+  .yt-row input,.text-input,select,textarea,.custom-row input,.live-moment-note,.clip-len-custom input{font-size:16px}
   .toast{bottom:14px;padding:10px 14px}
 }
 @media(max-width:380px){
@@ -527,6 +531,20 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
         <div class="hook-overlay" id="hookOverlay"><span id="hookSpan"></span></div>
         <div class="title-overlay" id="titleOverlay"><div class="clip-title" id="clipTitleEl"></div><div class="clip-subtitle" id="clipSubEl"></div></div>
         <div class="cap-overlay" id="capOverlay"></div>
+      </div>
+    </div>
+
+    <div style="padding:16px 20px 0">
+      <div class="sec-t" style="margin-bottom:10px">Clip length <span id="clipLenLabel">30s per clip</span></div>
+      <div class="chips" id="clipLenChips" role="group" aria-label="Clip length">
+        <button class="chip" data-len="15" type="button">15s</button>
+        <button class="chip active" data-len="30" type="button">30s</button>
+        <button class="chip" data-len="45" type="button">45s</button>
+        <button class="chip" data-len="60" type="button">60s</button>
+      </div>
+      <div class="clip-len-custom">
+        <label>Custom seconds<input type="number" id="clipLenCustom" min="5" max="600" step="1" placeholder="e.g. 40"></label>
+        <button class="btn" id="clipLenApply" type="button">Use custom</button>
       </div>
     </div>
 
@@ -711,6 +729,7 @@ var clipFormat='vertical', cropX=50, cropY=50, cropZoom=1, cropAuto=true;
 var keepAudio=true, isMuted=false, origVol=80, fadeIn=0, fadeOut=0;
 var musicBuffer=null, musicName='', musicVol=35, musicArrayBuf=null;
 var lastPicked=[], lastDur=0, hasVideo=false, guidesOn=false, safeOn=false;
+var clipLength=30;
 var clipStyle='hype', hookText='', clipTitle='', clipSubtitle='';
 var STYLE_LABELS={hype:'Hype',pro:'Pro analysis',meme:'Meme culture'};
 function styleLabel(s){ return STYLE_LABELS[s]||'Hype'; }
@@ -733,6 +752,49 @@ function outDims(){ if(clipFormat==='custom') return {w:customW,h:customH}; var 
 function gcd(a,b){ return b? gcd(b,a%b):a; }
 function ratioLabel(){ var d=outDims(); if(clipFormat!=='custom') return FORMATS[clipFormat].ratio; var g=gcd(d.w,d.h)||1; return (d.w/g)+':'+(d.h/g); }
 function curLabel(){ var d=outDims(); return clipFormat==='custom' ? 'Custom · '+d.w+' × '+d.h : FORMATS[clipFormat].label; }
+function getClipLength(){ var n=parseInt(clipLength,10); if(!isFinite(n)) n=30; return Math.max(5,Math.min(600,n)); }
+function clipWindow(center,dur){
+  var len=getClipLength();
+  var d=(typeof dur==='number'&&isFinite(dur)&&dur>0)?dur:((video&&video.duration)||lastDur||0);
+  if(!d||d<=len) return {s:0,e:d?d:len};
+  var s=center-len/2;
+  if(s<0) s=0;
+  if(s+len>d) s=d-len;
+  return {s:s,e:s+len};
+}
+function syncClipLenUI(){
+  var len=getClipLength();
+  document.querySelectorAll('#clipLenChips .chip').forEach(function(c){ var on=parseInt(c.dataset.len,10)===len; c.classList.toggle('active',on); c.setAttribute('aria-pressed',on?'true':'false'); });
+  var lbl=$('clipLenLabel'); if(lbl) lbl.textContent=len+'s per clip';
+  if(lastPicked.length&&lastDur&&typeof renderMoments==='function') renderMoments(lastPicked,lastDur);
+}
+function setClipLength(n, silent){
+  var v=parseInt(n,10);
+  if(!isFinite(v)) return;
+  clipLength=Math.max(5,Math.min(600,v));
+  syncClipLenUI();
+  if(!silent) toast('Clip length: '+getClipLength()+'s');
+}
+document.querySelectorAll('#clipLenChips .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    var inp=$('clipLenCustom'); if(inp) inp.value='';
+    setClipLength(parseInt(c.dataset.len,10));
+  });
+});
+var clipLenApplyBtn=$('clipLenApply');
+if(clipLenApplyBtn) clipLenApplyBtn.addEventListener('click',function(){
+  var inp=$('clipLenCustom'); var v=inp?parseInt(inp.value,10):NaN;
+  if(!isFinite(v)){ toast('Enter seconds — 5 to 600'); if(inp) inp.focus(); return; }
+  setClipLength(v);
+});
+var clipLenCustomInput=$('clipLenCustom');
+if(clipLenCustomInput){
+  clipLenCustomInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); if(clipLenApplyBtn) clipLenApplyBtn.click(); } });
+  clipLenCustomInput.addEventListener('input',function(){
+    var v=parseInt(this.value,10);
+    document.querySelectorAll('#clipLenChips .chip').forEach(function(c){ c.classList.toggle('active', isFinite(v)&&parseInt(c.dataset.len,10)===v); });
+  });
+}
 
 /* ---------- LOAD ---------- */
 function loadFile(file){
@@ -1099,10 +1161,11 @@ async function scanMoments(onProg,excludeTimes,append){
   var picked=[];
   var excl=(excludeTimes||[]).slice();
   if(append){ lastPicked.forEach(function(p){ excl.push(p.t); }); }
+  var minDist=getClipLength();
   for(var m=0;m<cands.length && picked.length<6;m++){
     var ok=true;
-    for(var p=0;p<picked.length;p++){ if(Math.abs(picked[p].t-cands[m].t)<25) ok=false; }
-    if(ok){ for(var q=0;q<excl.length;q++){ if(Math.abs(excl[q]-cands[m].t)<25){ ok=false; break; } } }
+    for(var p=0;p<picked.length;p++){ if(Math.abs(picked[p].t-cands[m].t)<minDist) ok=false; }
+    if(ok){ for(var q=0;q<excl.length;q++){ if(Math.abs(excl[q]-cands[m].t)<minDist){ ok=false; break; } } }
     if(ok) picked.push(cands[m]);
   }
   var fresh=picked.slice();
@@ -1138,7 +1201,7 @@ function renderMoments(picked,dur){
   if(!picked.length){list.innerHTML='<div class="empty">No peaks found</div>'; return;}
   list.innerHTML='';
   picked.forEach(function(pk){
-    var s=Math.max(0,pk.t-12), e=Math.min(dur,pk.t+18);
+    var w=clipWindow(pk.t,dur), s=w.s, e=w.e;
     var div=document.createElement('div'); div.className='moment';
     div.innerHTML='<div class="moment-main"><b>'+labelFor(pk.v)+'</b><span>'+fmt(s)+' → '+fmt(e)+'</span><div class="score"><i style="width:'+Math.round(pk.v*100)+'%"></i></div><span>Confidence ~'+Math.round(Math.min(98,58+pk.v*40))+'% · Energy '+Math.round(pk.v*100)+'%</span></div>';
     var b=document.createElement('button'); b.className='small-btn'; b.textContent='Use';
@@ -1176,7 +1239,7 @@ async function makeTopClips(){
   var keepT=video.currentTime; video.pause();
   var top=lastPicked.slice().sort(function(a,b){return b.v-a.v}).slice(0,3).sort(function(a,b){return a.t-b.t});
   for(var i=0;i<top.length;i++){
-    var s=Math.max(0,top[i].t-12), e=Math.min(lastDur,top[i].t+18);
+    var w=clipWindow(top[i].t,lastDur), s=w.s, e=w.e;
     await seekTo(s); addClip(s,e,settingsSnapshot(),captureThumb());
   }
   await seekTo(keepT);
@@ -1874,7 +1937,7 @@ video.addEventListener('loadedmetadata',function(){
 renderLiveMoments();
 
 if(document.fonts&&document.fonts.load){ document.fonts.load('900 40px "Pricedown Bl"').catch(function(){}); }
-applyFormat(); applyCrop(); updateIO(); drawWave(); syncStyleUI(); updateOverlays();
+applyFormat(); applyCrop(); updateIO(); drawWave(); syncStyleUI(); updateOverlays(); syncClipLenUI();
 </script>
 </body>
 </html>
