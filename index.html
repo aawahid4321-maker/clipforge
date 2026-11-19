@@ -133,10 +133,25 @@ button{min-height:40px;cursor:pointer}
 .video-empty b{color:var(--text);font-family:"Anton","Inter",sans-serif;font-size:18px;font-weight:400;letter-spacing:.03em;text-transform:uppercase;display:block;margin-bottom:4px}
 .video-empty .btn{margin-top:12px;min-height:46px;padding:11px 22px;font-size:15px}
 .video-empty span{display:block;margin-top:10px;font-size:12.5px;font-weight:500}
-.cap-overlay{position:absolute;left:50%;transform:translateX(-50%);bottom:12%;max-width:86%;background:rgba(0,0,0,.85);color:#fff;font-weight:700;font-size:clamp(15px,2.2vw,21px);line-height:1.35;text-align:center;padding:8px 14px;border-radius:6px;display:none;z-index:6}
+.cap-overlay{position:absolute;left:50%;transform:translateX(-50%);bottom:12%;max-width:88%;background:rgba(0,0,0,.92);color:#fff;font-weight:800;font-size:clamp(16px,2.4vw,23px);line-height:1.4;text-align:center;padding:9px 16px;border-radius:6px;display:none;z-index:8;text-shadow:0 1px 3px rgba(0,0,0,.95);overflow-wrap:break-word;box-shadow:0 4px 18px rgba(0,0,0,.45)}
 .cap-overlay.on{display:block}
 .live-dot{position:absolute;top:10px;left:10px;background:rgba(122,11,78,.85);color:#fff;font-size:11px;font-weight:700;letter-spacing:.05em;padding:5px 9px;border-radius:6px;display:none;z-index:7}
 .fmt-tag{position:absolute;top:10px;right:10px;background:rgba(122,11,78,.85);color:#fff;font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:600;padding:5px 8px;border-radius:6px;z-index:7}
+.guides-toggle{position:absolute;right:10px;bottom:10px;z-index:9;min-height:34px;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.4);background:rgba(20,4,40,.82);color:#fff;font-size:12.5px;font-weight:700;letter-spacing:.03em;cursor:pointer;line-height:1.2}
+.guides-toggle:hover{border-color:#fff}
+.guides-toggle.on{border-color:var(--accent);background:rgba(122,11,78,.92)}
+.subs-toggle{left:10px;right:auto}
+.text-layer{position:absolute;inset:0;z-index:6;pointer-events:none}
+.stage.no-video .text-layer{display:none}
+.text-item{position:absolute;transform:translate(-50%,-50%);font-weight:800;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.65),0 0 2px rgba(0,0,0,.85);cursor:grab;pointer-events:auto;white-space:pre-wrap;text-align:center;line-height:1.2;padding:2px 6px;border-radius:6px;touch-action:none;max-width:92%;user-select:none;-webkit-user-select:none}
+.text-item.sel{outline:1.5px dashed var(--accent);outline-offset:2px}
+.text-item:active{cursor:grabbing}
+.text-input{width:100%;padding:10px 12px;border:1px solid var(--line-strong);border-radius:8px;background:var(--stage);font-size:15px;min-height:44px}
+.text-input::placeholder{color:var(--faint)}
+.text-row{display:flex;align-items:center;gap:8px;font-size:13.5px;line-height:1.4;padding:8px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.text-row.sel{border-color:var(--accent)}
+.text-row span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.text-row button{min-height:30px;padding:3px 9px;border-radius:6px;border:1px solid var(--line-strong);background:var(--panel);font-weight:700;font-size:12px;cursor:pointer}
 .stage.no-video .guides,.stage.no-video .safe,.stage.no-video .focus-dot{display:none !important}
 .guides{position:absolute;inset:0;pointer-events:none;z-index:5;display:none}
 .guides.on{display:block}
@@ -244,8 +259,8 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
     </div>
     <div class="format-foot">
       <div class="chips">
-        <button class="chip toggle active" id="gridChip">Rule-of-thirds grid</button>
-        <button class="chip toggle active" id="safeChip">Safe zones</button>
+        <button class="chip toggle" id="gridChip">Rule-of-thirds grid</button>
+        <button class="chip toggle" id="safeChip">Safe zones</button>
       </div>
       <span class="format-live" id="formatLive">Selected: <b>9:16 Shorts</b></span>
     </div>
@@ -295,8 +310,15 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
         <div class="video-empty" id="videoEmpty" role="button" tabindex="0" aria-label="Upload a video file"><div><b>No video</b><button class="btn primary" type="button" id="stageUploadBtn">Upload video</button><span>Tap anywhere to choose a file · MP4 · WebM · MOV</span></div></div>
         <span class="live-dot" id="liveDot">Preview</span>
         <span class="fmt-tag" id="fmtTag">9:16</span>
+        <button class="guides-toggle" id="guidesToggle" type="button" aria-pressed="false">Guides: Off</button>
+        <button class="guides-toggle subs-toggle" id="subsToggle" type="button" aria-pressed="false">Subtitles: Off</button>
+        <div class="text-layer" id="textLayer"></div>
         <div class="cap-overlay" id="capOverlay"></div>
       </div>
+    </div>
+
+    <div style="padding:14px 20px 0">
+      <button class="btn primary" id="autoClipBtn" type="button" style="width:100%;min-height:54px;font-size:17px;font-weight:700">Auto clip</button>
     </div>
 
     <div class="controls">
@@ -397,12 +419,43 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
     <section class="card">
       <div class="card-h"><h2>Captions</h2><span class="badge">Speech</span></div>
       <div class="pad">
-        <select id="capLang"><option value="en-US">English</option><option value="ur-PK">Urdu</option><option value="hi-IN">Hindi / Roman mix</option></select>
-        <button class="btn primary" id="capBtn">Start auto captions</button>
         <p class="hint" id="capStatus" style="margin:0">Chrome · sound on</p>
+        <select id="capLang">
+          <option value="ur-PK">Roman Urdu</option>
+          <option value="ur-PK">Urdu</option>
+          <option value="hi-IN">Hindi</option>
+          <option value="en-US" selected>English</option>
+          <option value="es-ES">Spanish</option>
+          <option value="ar-SA">Arabic</option>
+          <option value="fr-FR">French</option>
+          <option value="de-DE">German</option>
+          <option value="pt-BR">Portuguese</option>
+          <option value="tr-TR">Turkish</option>
+          <option value="id-ID">Indonesian</option>
+          <option value="bn-IN">Bengali</option>
+          <option value="pa-IN">Punjabi</option>
+        </select>
+        <button class="btn primary" id="capBtn">Start auto captions</button>
         <textarea id="manualCap" rows="2" placeholder="Type caption…"></textarea>
         <button class="btn" id="addCapBtn">Add caption</button>
         <div id="capList" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Text</h2><span class="badge">Overlay</span></div>
+      <div class="pad">
+        <input type="text" class="text-input" id="textInput" placeholder="Type text…" autocomplete="off">
+        <div class="ctl-row"><label>Size</label><input type="range" id="textSize" min="3" max="14" step="0.5" value="6"><output id="textSizeVal">6%</output></div>
+        <div class="chips" id="textColors">
+          <button class="chip color-chip active" data-color="#ffffff" type="button">White</button>
+          <button class="chip color-chip" data-color="#ff4d9d" type="button">Pink</button>
+          <button class="chip color-chip" data-color="#e044c8" type="button">Magenta</button>
+          <button class="chip color-chip" data-color="#150430" type="button">Dark</button>
+        </div>
+        <button class="btn primary" id="addTextBtn" type="button">Add text</button>
+        <div id="textList" style="display:flex;flex-direction:column;gap:8px"></div>
+        <p class="hint" style="margin:0">Drag text on the video to place it</p>
       </div>
     </section>
 
@@ -428,7 +481,7 @@ var inPoint=0, outPoint=30, quickDur=30, clips=[], captions=[], videoFile=null;
 var clipFormat='vertical', cropX=50, cropY=50, cropZoom=1, cropAuto=true;
 var keepAudio=true, isMuted=false, origVol=80, fadeIn=0, fadeOut=0;
 var musicBuffer=null, musicName='', musicVol=35, musicArrayBuf=null;
-var lastPicked=[], lastDur=0, hasVideo=false, guidesOn=true, safeOn=true;
+var lastPicked=[], lastDur=0, hasVideo=false, guidesOn=false, safeOn=false;
 function $(id){return document.getElementById(id);}
 function fmt(s){s=Math.max(0,Math.floor(s||0));var m=Math.floor(s/60),ss=s%60,h=Math.floor(m/60);m=m%60;return (h?h+':':'')+String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');}
 function toast(msg){var t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(function(){t.style.display='none'},3200);}
@@ -451,7 +504,7 @@ function curLabel(){ var d=outDims(); return clipFormat==='custom' ? 'Custom · 
 
 /* ---------- LOAD ---------- */
 function loadFile(file){
-  if(!file) return; videoFile=file;
+  if(!file) return; videoFile=file; lastPicked=[]; lastDur=0;
   video.src=URL.createObjectURL(file); video.load();
   hasVideo=true; stage.classList.remove('no-video'); syncGuides();
   $('videoEmpty').style.display='none'; $('liveDot').style.display='block';
@@ -505,6 +558,7 @@ video.addEventListener('timeupdate',function(){
   curTimeEl.textContent=fmt(video.currentTime); if(document.activeElement!==seek) seek.value=video.currentTime;
   var ov=$('capOverlay'), txt='';
   for(var i=0;i<captions.length;i++){ if(video.currentTime>=captions[i].t && video.currentTime<captions[i].t+3.5) txt=captions[i].text; }
+  if(typeof liveCap!=='undefined' && liveCap) txt=liveCap;
   if(txt){ov.textContent=txt; ov.classList.add('on');} else ov.classList.remove('on');
   drawPlayhead();
 });
@@ -583,17 +637,27 @@ function applyFormat(){
   document.querySelectorAll('#fmtChips .chip').forEach(function(x){ var on=x.dataset.fmt===clipFormat; x.classList.toggle('active',on); x.setAttribute('aria-pressed',on?'true':'false'); });
   var cb=$('customBox'); if(cb) cb.classList.toggle('active', clipFormat==='custom');
   applyCrop();
+  if(typeof layoutTextOverlays==='function') setTimeout(layoutTextOverlays,60);
 }
 function syncGuides(){
   $('thirdsGuide').classList.toggle('on', hasVideo&&guidesOn);
   var s=hasVideo&&safeOn;
   ['safeAction','safeTitle','uiTop','uiBot'].forEach(function(id){$(id).classList.toggle('on',s);});
 }
-$('gridChip').addEventListener('click',function(){ this.classList.toggle('active'); guidesOn=this.classList.contains('active'); syncGuides(); });
-$('safeChip').addEventListener('click',function(){
-  this.classList.toggle('active'); safeOn=this.classList.contains('active'); syncGuides();
-});
-syncGuides();
+function syncGuideControls(){
+  $('gridChip').classList.toggle('active',guidesOn);
+  $('safeChip').classList.toggle('active',safeOn);
+  var any=guidesOn||safeOn, tg=$('guidesToggle');
+  tg.classList.toggle('on',any); tg.setAttribute('aria-pressed',any?'true':'false');
+  tg.textContent=any?'Guides: On':'Guides: Off';
+}
+function setGuides(g,s){ guidesOn=g; safeOn=s; syncGuides(); syncGuideControls(); }
+$('gridChip').addEventListener('click',function(){ guidesOn=!guidesOn; syncGuides(); syncGuideControls(); });
+$('safeChip').addEventListener('click',function(){ safeOn=!safeOn; syncGuides(); syncGuideControls(); });
+var guidesToggle=$('guidesToggle');
+guidesToggle.addEventListener('pointerdown',function(e){ e.stopPropagation(); });
+guidesToggle.addEventListener('click',function(e){ e.stopPropagation(); var on=!(guidesOn||safeOn); setGuides(on,on); });
+syncGuides(); syncGuideControls();
 
 /* ---------- CROP ---------- */
 function applyCrop(){
@@ -719,29 +783,36 @@ function drawPlayhead(){
   var cv=$('wave'), ctx=cv.getContext('2d'), x=(video.currentTime/video.duration)*cv.width;
   ctx.fillStyle='#ff6fb3'; ctx.fillRect(x,0,2,cv.height);
 }
+async function scanMoments(onProg){
+  var buf=await videoFile.arrayBuffer();
+  var AC=window.AudioContext||window.webkitAudioContext; var ctx=new AC();
+  var audio=await ctx.decodeAudioData(buf.slice(0)); ctx.close();
+  var ch=audio.getChannelData(0), dur=audio.duration, buckets=180; waveData=[]; var perSec=[];
+  var totalSec=Math.max(1,Math.floor(dur));
+  for(var s=0;s<Math.floor(dur);s++){
+    var start=Math.floor(s*audio.sampleRate), sum=0, n=0;
+    for(var j=start;j<Math.min(ch.length,start+audio.sampleRate);j+=40){sum+=Math.abs(ch[j]); n++;}
+    perSec.push(n?sum/n:0);
+    if(onProg&&(s%15===0||s===Math.floor(dur)-1)){ onProg(Math.round(s/totalSec*100)); await new Promise(function(r){ setTimeout(r,0); }); }
+  }
+  if(onProg) onProg(100);
+  var maxP=Math.max.apply(null,perSec)||1;
+  for(var b=0;b<buckets;b++){ waveData.push(perSec[Math.floor(b/buckets*perSec.length)]/maxP); }
+  drawWave();
+  var mean=perSec.reduce(function(a,c){return a+c},0)/perSec.length, cands=[];
+  for(var k=2;k<perSec.length-2;k++){ if(perSec[k]>mean*1.55 && perSec[k]>=perSec[k-1] && perSec[k]>=perSec[k+1]) cands.push({t:k,v:perSec[k]/maxP}); }
+  cands.sort(function(a,b){return b.v-a.v});
+  var picked=[];
+  for(var m=0;m<cands.length && picked.length<6;m++){ var ok=true; for(var p=0;p<picked.length;p++){ if(Math.abs(picked[p].t-cands[m].t)<25) ok=false; } if(ok) picked.push(cands[m]); }
+  picked.sort(function(a,b){return a.t-b.t});
+  lastPicked=picked; lastDur=dur; renderMoments(picked,dur);
+  return picked;
+}
 $('analyzeBtn').addEventListener('click', async function(){
   if(!videoFile){toast('Load video first'); if(ytId){var dz=$('dropZone'); if(dz) dz.scrollIntoView({behavior:'smooth',block:'center'});} return;}
   var btn=this; btn.disabled=true; btn.textContent='Scanning…';
   try{
-    var buf=await videoFile.arrayBuffer();
-    var AC=window.AudioContext||window.webkitAudioContext; var ctx=new AC();
-    var audio=await ctx.decodeAudioData(buf.slice(0)); ctx.close();
-    var ch=audio.getChannelData(0), dur=audio.duration, buckets=180; waveData=[]; var perSec=[];
-    for(var s=0;s<Math.floor(dur);s++){
-      var start=Math.floor(s*audio.sampleRate), sum=0, n=0;
-      for(var j=start;j<Math.min(ch.length,start+audio.sampleRate);j+=40){sum+=Math.abs(ch[j]); n++;}
-      perSec.push(n?sum/n:0);
-    }
-    var maxP=Math.max.apply(null,perSec)||1;
-    for(var b=0;b<buckets;b++){ waveData.push(perSec[Math.floor(b/buckets*perSec.length)]/maxP); }
-    drawWave();
-    var mean=perSec.reduce(function(a,c){return a+c},0)/perSec.length, cands=[];
-    for(var k=2;k<perSec.length-2;k++){ if(perSec[k]>mean*1.55 && perSec[k]>=perSec[k-1] && perSec[k]>=perSec[k+1]) cands.push({t:k,v:perSec[k]/maxP}); }
-    cands.sort(function(a,b){return b.v-a.v});
-    var picked=[];
-    for(var m=0;m<cands.length && picked.length<6;m++){ var ok=true; for(var p=0;p<picked.length;p++){ if(Math.abs(picked[p].t-cands[m].t)<25) ok=false; } if(ok) picked.push(cands[m]); }
-    picked.sort(function(a,b){return a.t-b.t});
-    lastPicked=picked; lastDur=dur; renderMoments(picked,dur);
+    var picked=await scanMoments();
     toast(picked.length? picked.length+' moments found' : 'No peaks found');
   }catch(err){ toast('Audio failed — try MP4'); }
   btn.disabled=false; btn.textContent='Find moments';
@@ -764,7 +835,7 @@ function renderMoments(picked,dur){
 /* ---------- CLIPS ---------- */
 function settingsSnapshot(){
   var d=outDims();
-  return {format:clipFormat,w:d.w,h:d.h,ratio:ratioLabel(),cropX:cropX,cropY:cropY,zoom:cropZoom,keep:keepAudio,mute:isMuted,vol:origVol,fadeIn:fadeIn,fadeOut:fadeOut,musicBuffer:musicBuffer,musicName:musicName,musicVol:musicVol};
+  return {format:clipFormat,w:d.w,h:d.h,ratio:ratioLabel(),cropX:cropX,cropY:cropY,zoom:cropZoom,keep:keepAudio,mute:isMuted,vol:origVol,fadeIn:fadeIn,fadeOut:fadeOut,musicBuffer:musicBuffer,musicName:musicName,musicVol:musicVol,texts:textItems.map(function(t){return {text:t.text,x:t.x,y:t.y,size:t.size,color:t.color};})};
 }
 function captureThumb(){
   try{
@@ -784,19 +855,50 @@ $('addClipBtn').addEventListener('click', async function(){
   addClip(inPoint,outPoint,settingsSnapshot(),captureThumb());
   await seekTo(keepT); toast('Clip added');
 });
-$('autoClipsBtn').addEventListener('click', async function(){
-  if(!video.src){toast('Load a video first'); return;}
-  if(!lastPicked.length){ toast('Scanning first…'); await $('analyzeBtn').click(); }
-  if(!lastPicked.length){ toast('No moments to auto-clip'); return; }
-  var btn=this; btn.disabled=true; btn.textContent='Making clips…';
+async function makeTopClips(){
   var keepT=video.currentTime; video.pause();
   var top=lastPicked.slice().sort(function(a,b){return b.v-a.v}).slice(0,3).sort(function(a,b){return a.t-b.t});
   for(var i=0;i<top.length;i++){
     var s=Math.max(0,top[i].t-12), e=Math.min(lastDur,top[i].t+18);
     await seekTo(s); addClip(s,e,settingsSnapshot(),captureThumb());
   }
-  await seekTo(keepT); btn.disabled=false; btn.textContent='Top 3 clips';
-  toast(top.length+' clips created');
+  await seekTo(keepT);
+  return top.length;
+}
+$('autoClipsBtn').addEventListener('click', async function(){
+  if(!videoFile){toast('Load a video first'); return;}
+  var btn=this; btn.disabled=true; btn.textContent='Scanning…';
+  try{
+    if(!lastPicked.length) await scanMoments();
+    if(!lastPicked.length){ toast('No moments to auto-clip'); }
+    else { btn.textContent='Making clips…'; var n=await makeTopClips(); toast(n+' clips created'); }
+  }catch(err){ toast('Audio failed — try MP4'); }
+  btn.disabled=false; btn.textContent='Top 3 clips';
+});
+$('autoClipBtn').addEventListener('click', async function(){
+  if(!videoFile){ toast('Load a video file first'); if(ytId){ var dz=$('dropZone'); if(dz) dz.scrollIntoView({behavior:'smooth',block:'center'}); } return; }
+  var btn=this; btn.disabled=true;
+  var prog=$('exportProg'), bar=prog.querySelector('i');
+  prog.style.display='block'; bar.style.width='3%';
+  var note=$('waveNote'); note.textContent='Scanning audio for the loudest moments…';
+  try{
+    btn.textContent='Scanning…';
+    var picked=await scanMoments(function(p){
+      bar.style.width=(3+p*0.77)+'%';
+      btn.textContent='Scanning… '+p+'%';
+    });
+    if(!picked.length){ toast('No loud moments found'); }
+    else {
+      btn.textContent='Making clips…'; bar.style.width='88%';
+      var n=await makeTopClips();
+      bar.style.width='100%';
+      toast(n+' clips added to My Clips');
+      var cl=$('clipsList'); if(cl) cl.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+  }catch(err){ toast('Audio failed — try MP4'); }
+  note.textContent='Tallest = loudest';
+  setTimeout(function(){ prog.style.display='none'; },600);
+  btn.disabled=false; btn.textContent='Auto clip';
 });
 function renderClips(){
   $('clipCount').textContent=clips.length+' ready';
@@ -814,6 +916,8 @@ function renderClips(){
     div.querySelector('.play-cl').addEventListener('click',function(){
       clipFormat=cl.format; cropX=cl.cropX; cropY=cl.cropY; cropZoom=cl.zoom;
       if(cl.format==='custom'&&cl.w){ customW=cl.w; customH=cl.h; $('customW').value=cl.w; $('customH').value=cl.h; }
+      textItems=(cl.texts||[]).map(function(t){ return {id:++textSeq,text:t.text,x:t.x,y:t.y,size:t.size,color:t.color}; });
+      selTextId=null; renderTextOverlays();
       applyFormat(); setIn(cl.s); setOut(cl.e); video.currentTime=cl.s; video.play();
     });
     div.querySelector('.dl-cl').addEventListener('click',function(){ exportClip(cl); });
@@ -844,6 +948,14 @@ async function exportClip(cl){
       cx.fillStyle='rgba(0,0,0,.82)'; cx.fillRect((dims.w-tw)/2-14, dims.h*0.82, tw+28, dims.w*0.07);
       cx.fillStyle='#fff'; cx.fillText(captions[i].text, dims.w/2, dims.h*0.82+dims.w*0.05);
     }}
+    if(cl.texts){ cl.texts.forEach(function(t){
+      var fs=t.size/100*dims.w, lines=String(t.text).split('\n'), lh=fs*1.2;
+      cx.font='800 '+Math.round(fs)+'px Inter, sans-serif'; cx.textAlign='center'; cx.textBaseline='middle';
+      cx.shadowColor='rgba(0,0,0,.6)'; cx.shadowBlur=Math.max(2,Math.round(dims.w*0.006)); cx.shadowOffsetY=2;
+      cx.fillStyle=t.color;
+      lines.forEach(function(ln,li){ cx.fillText(ln, t.x/100*dims.w, t.y/100*dims.h + (li-(lines.length-1)/2)*lh); });
+      cx.shadowColor='transparent'; cx.shadowBlur=0; cx.shadowOffsetY=0; cx.textBaseline='alphabetic';
+    }); }
   }
   var stream=cnv.captureStream(30);
   var audioDest=null, trackGain=null, musicGain=null, musicSrc=null, graphOK=false;
@@ -893,24 +1005,169 @@ async function exportClip(cl){
   },200);
 }
 
+/* ---------- TEXT OVERLAY ---------- */
+var textItems=[], selTextId=null, textColor='#ffffff', textSizePct=6, textSeq=0;
+function findText(id){ for(var i=0;i<textItems.length;i++){ if(textItems[i].id===id) return textItems[i]; } return null; }
+function renderTextOverlays(){
+  var layer=$('textLayer'); layer.innerHTML='';
+  textItems.forEach(function(t){
+    var d=document.createElement('div');
+    d.className='text-item'+(t.id===selTextId?' sel':'');
+    d.textContent=t.text; d.dataset.id=t.id;
+    d.style.left=t.x+'%'; d.style.top=t.y+'%'; d.style.color=t.color;
+    d.addEventListener('pointerdown',function(e){ startTextDrag(e,t,d); });
+    layer.appendChild(d);
+  });
+  layoutTextOverlays(); renderTextList();
+}
+function layoutTextOverlays(){
+  var w=stage.clientWidth||0; if(!w) return;
+  document.querySelectorAll('.text-item').forEach(function(d){
+    var t=findText(parseInt(d.dataset.id,10)); if(!t) return;
+    d.style.fontSize=Math.max(10,Math.round(w*t.size/100))+'px';
+  });
+}
+function markTextSel(){
+  document.querySelectorAll('.text-item').forEach(function(d){ d.classList.toggle('sel', parseInt(d.dataset.id,10)===selTextId); });
+  document.querySelectorAll('.text-row').forEach(function(r){ r.classList.toggle('sel', parseInt(r.dataset.id,10)===selTextId); });
+}
+function selectText(id){
+  selTextId=id; var t=findText(id);
+  if(t){
+    textColor=t.color; textSizePct=t.size;
+    $('textSize').value=t.size; $('textSizeVal').textContent=(Math.round(t.size*10)/10)+'%';
+    document.querySelectorAll('#textColors .color-chip').forEach(function(c){ c.classList.toggle('active', c.dataset.color===t.color); });
+  }
+  markTextSel();
+}
+function startTextDrag(e,t,d){
+  e.preventDefault(); e.stopPropagation(); selectText(t.id);
+  var r=stage.getBoundingClientRect();
+  function mv(ev){
+    t.x=Math.max(2,Math.min(98,(ev.clientX-r.left)/r.width*100));
+    t.y=Math.max(3,Math.min(97,(ev.clientY-r.top)/r.height*100));
+    d.style.left=t.x+'%'; d.style.top=t.y+'%';
+  }
+  function up(){ document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up); }
+  document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up);
+}
+function renderTextList(){
+  var box=$('textList'); box.innerHTML='';
+  textItems.forEach(function(t){
+    var row=document.createElement('div'); row.className='text-row'+(t.id===selTextId?' sel':''); row.dataset.id=t.id;
+    var sp=document.createElement('span'); sp.textContent=t.text; row.appendChild(sp);
+    var del=document.createElement('button'); del.type='button'; del.textContent='✕'; del.setAttribute('aria-label','Remove text');
+    del.addEventListener('click',function(e){
+      e.stopPropagation();
+      textItems=textItems.filter(function(x){return x.id!==t.id;});
+      if(selTextId===t.id) selTextId=null;
+      renderTextOverlays();
+    });
+    row.appendChild(del);
+    row.addEventListener('click',function(){ selectText(t.id); });
+    box.appendChild(row);
+  });
+}
+$('addTextBtn').addEventListener('click',function(){
+  var v=$('textInput').value.trim();
+  if(!v){ toast('Type text first'); return; }
+  if(!video.src){ toast('Load a video first'); return; }
+  var t={id:++textSeq,text:v,x:50,y:50,size:textSizePct,color:textColor};
+  textItems.push(t); selTextId=t.id;
+  $('textInput').value='';
+  renderTextOverlays(); toast('Text added — drag it into place');
+});
+$('textInput').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); $('addTextBtn').click(); } });
+$('textSize').addEventListener('input',function(){
+  textSizePct=parseFloat(this.value); $('textSizeVal').textContent=(Math.round(textSizePct*10)/10)+'%';
+  var t=findText(selTextId); if(t){ t.size=textSizePct; layoutTextOverlays(); }
+});
+document.querySelectorAll('#textColors .color-chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#textColors .color-chip').forEach(function(x){x.classList.remove('active');});
+    c.classList.add('active'); textColor=c.dataset.color;
+    var t=findText(selTextId); if(t){ t.color=textColor; renderTextOverlays(); }
+  });
+});
+window.addEventListener('resize',layoutTextOverlays);
+
 /* ---------- CAPTIONS ---------- */
-var recog=null, recogOn=false;
-$('capBtn').addEventListener('click',function(){
-  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(recogOn&&recog){ recog.stop(); return; }
-  if(!SR){ $('capStatus').textContent='Not available — type below'; toast('Use Chrome'); return; }
-  if(!video.src){toast('Load a video first'); return;}
-  recog=new SR(); recog.continuous=true; recog.interimResults=false; recog.lang=$('capLang').value;
+var recog=null, recogOn=false, liveCap='';
+var wantSubs=false, recogErr='';
+function syncSubsToggle(){
+  var tg=$('subsToggle'); if(!tg) return;
+  tg.classList.toggle('on',wantSubs); tg.setAttribute('aria-pressed',wantSubs?'true':'false');
+  tg.textContent=wantSubs?'Subtitles: On':'Subtitles: Off';
+}
+function capMsg(msg,isErr){ var st=$('capStatus'); st.textContent=msg; st.style.color=isErr?'var(--err)':''; }
+function micBlockedMsg(){
+  capMsg('Microphone is needed for auto captions — allow mic access in the browser, then tap again',true);
+  toast('Mic blocked — auto captions need the microphone');
+}
+function startRecog(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR||!wantSubs) return;
+  if(recog){ recog.onend=null; recog.onerror=null; recog.onresult=null; try{ recog.abort(); }catch(e){} }
+  recog=new SR(); recog.continuous=true; recog.interimResults=true; recog.lang=$('capLang').value;
   recog.onresult=function(ev){
+    var interim='';
     for(var i=ev.resultIndex;i<ev.results.length;i++){
-      if(ev.results[i].isFinal){ captions.push({t:video.currentTime,text:ev.results[i][0].transcript.trim()}); captions.sort(function(a,b){return a.t-b.t}); renderCaps(); }
+      var txt=ev.results[i][0].transcript.trim();
+      if(ev.results[i].isFinal){ if(txt){ captions.push({t:video.currentTime,text:txt}); captions.sort(function(a,b){return a.t-b.t}); renderCaps(); } }
+      else if(txt) interim+=(interim?' ':'')+txt;
+    }
+    liveCap=interim;
+  };
+  recog.onerror=function(ev){
+    var code=ev&&ev.error?ev.error:'';
+    if(code==='not-allowed'||code==='service-not-allowed'){ recogErr='mic'; wantSubs=false; micBlockedMsg(); }
+    else if(code==='audio-capture'){ recogErr='nomic'; wantSubs=false; capMsg('No microphone found — auto captions need a mic',true); toast('No microphone found'); }
+    else if(code==='network'){ capMsg('Caption service needs internet — retrying…',true); }
+  };
+  recog.onend=function(){
+    if(wantSubs){ setTimeout(function(){ if(wantSubs) startRecog(); },300); }
+    else {
+      recogOn=false; liveCap='';
+      $('capBtn').textContent='Start auto captions';
+      if(!recogErr) capMsg('Done');
+      syncSubsToggle();
     }
   };
-  recog.onend=function(){ recogOn=false; $('capBtn').textContent='Start auto captions'; $('capStatus').textContent='Done'; };
-  recog.onerror=function(){ recogOn=false; $('capBtn').textContent='Start auto captions'; };
-  recog.start(); recogOn=true; video.play(); startMusicPreview();
-  this.textContent='Stop captions'; $('capStatus').textContent='Listening…';
+  try{ recog.start(); recogOn=true; }catch(e){ recogOn=false; }
+  syncSubsToggle();
+}
+function stopSubs(){
+  wantSubs=false;
+  if(recog){ try{ recog.stop(); }catch(e){} }
+  recogOn=false; liveCap='';
+  $('capBtn').textContent='Start auto captions';
+  if(!recogErr) capMsg('Done');
+  syncSubsToggle();
+}
+$('capBtn').addEventListener('click', async function(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(wantSubs){ stopSubs(); return; }
+  if(!SR){ capMsg('Auto captions need Chrome — type captions below instead',true); toast('Auto captions need Chrome'); return; }
+  if(!video.src){ toast('Load a video first'); return; }
+  var btn=this; btn.disabled=true;
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+    capMsg('Asking for microphone…');
+    try{
+      var stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      stream.getTracks().forEach(function(t){ t.stop(); });
+    }catch(e){
+      btn.disabled=false; micBlockedMsg(); return;
+    }
+  }
+  btn.disabled=false;
+  recogErr=''; wantSubs=true;
+  startRecog();
+  var p=video.play(); if(p&&p.catch) p.catch(function(){});
+  startMusicPreview();
+  btn.textContent='Stop captions'; capMsg('Listening… play the video with sound on'); syncSubsToggle();
 });
+var subsToggle=$('subsToggle');
+subsToggle.addEventListener('pointerdown',function(e){ e.stopPropagation(); });
+subsToggle.addEventListener('click',function(e){ e.stopPropagation(); $('capBtn').click(); });
 $('addCapBtn').addEventListener('click',function(){
   var v=$('manualCap').value.trim(); if(!v) return;
   captions.push({t:video.currentTime||0,text:v}); captions.sort(function(a,b){return a.t-b.t});
