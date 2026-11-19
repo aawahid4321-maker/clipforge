@@ -881,7 +881,9 @@ function captureThumb(){
   }catch(e){ return ''; }
 }
 function addClip(s,e,snap,thumb){
-  clips.unshift(Object.assign({id:Date.now()+Math.random(),s:s,e:e,thumb:thumb||'',name:'Clip '+(clips.length+1)+' · '+fmt(s)},snap));
+  var cl=Object.assign({id:Date.now()+Math.random(),s:s,e:e,thumb:thumb||'',name:'Clip '+(clips.length+1)+' · '+fmt(s)},snap);
+  cl.captions=captions.filter(function(c){ return c.t+CAP_DUR>s && c.t<e; }).map(function(c){ return {t:c.t,text:c.text}; });
+  clips.unshift(cl);
   renderClips();
 }
 $('addClipBtn').addEventListener('click', async function(){
@@ -945,9 +947,10 @@ function renderClips(){
     var div=document.createElement('div'); div.className='clip-item';
     var snd=cl.mute||!cl.keep?'Muted':'Audio '+cl.vol+'%';
     if(cl.fadeIn||cl.fadeOut) snd+=' · fade '+cl.fadeIn+'/'+cl.fadeOut+'s';
+    var hasCaps=(cl.captions&&cl.captions.length>0)||captions.some(function(c){ return c.t+CAP_DUR>cl.s && c.t<cl.e; });
     div.innerHTML=(cl.thumb?'<img class="thumb" src="'+cl.thumb+'" alt="Clip thumbnail">':'<div class="thumb"></div>')+
       '<div class="clip-main"><b>'+cl.name+'</b><span>'+fmt(cl.s)+' → '+fmt(cl.e)+' · '+Math.round(cl.e-cl.s)+'s</span>'+
-      '<div class="tagrow"><span class="tag">'+(cl.ratio||'')+'</span><span class="tag">'+(cl.w||'')+'×'+(cl.h||'')+'</span><span class="tag">'+snd+'</span>'+(cl.musicName?'<span class="tag">Music</span>':'')+'</div>'+
+      '<div class="tagrow"><span class="tag">'+(cl.ratio||'')+'</span><span class="tag">'+(cl.w||'')+'×'+(cl.h||'')+'</span><span class="tag">'+snd+'</span>'+(cl.musicName?'<span class="tag">Music</span>':'')+(hasCaps?'<span class="tag">Captions</span>':'')+'</div>'+
       '<div style="margin-top:9px;display:flex;gap:6px;flex-wrap:wrap"><button class="small-btn play-cl">Play</button><button class="small-btn export dl-cl">Export</button></div></div>';
     div.querySelector('.play-cl').addEventListener('click',function(){
       clipFormat=cl.format; cropX=cl.cropX; cropY=cl.cropY; cropZoom=cl.zoom;
@@ -1010,6 +1013,15 @@ async function exportClip(cl){
   var dims={w:cl.w||720,h:cl.h||1280};
   var cnv=document.createElement('canvas'); cnv.width=dims.w; cnv.height=dims.h;
   var cx=cnv.getContext('2d');
+  var burnCaps=(cl.captions||[]).map(function(c){ return {t:c.t,text:c.text}; });
+  captions.forEach(function(c){
+    if(c.t+CAP_DUR>cl.s && c.t<cl.e){
+      var dup=false;
+      for(var j=0;j<burnCaps.length;j++){ if(burnCaps[j].text===c.text && Math.abs(burnCaps[j].t-c.t)<0.1){ dup=true; break; } }
+      if(!dup) burnCaps.push({t:c.t,text:c.text});
+    }
+  });
+  burnCaps.sort(function(a,b){ return a.t-b.t; });
   var ta=dims.w/dims.h;
   function drawFrame(){
     var vw=video.videoWidth||16, vh=video.videoHeight||9, cw, ch;
@@ -1018,7 +1030,7 @@ async function exportClip(cl){
     var sx=(vw-cw)*(cl.cropX/100), sy=(vh-ch)*(cl.cropY/100);
     cx.fillStyle='#000'; cx.fillRect(0,0,dims.w,dims.h);
     cx.drawImage(video,sx,sy,cw,ch,0,0,dims.w,dims.h);
-    for(var i=0;i<captions.length;i++){ if(video.currentTime>=captions[i].t && video.currentTime<captions[i].t+CAP_DUR) drawBurnCaption(cx,captions[i],dims,video.currentTime); }
+    for(var i=0;i<burnCaps.length;i++){ if(video.currentTime>=burnCaps[i].t && video.currentTime<burnCaps[i].t+CAP_DUR) drawBurnCaption(cx,burnCaps[i],dims,video.currentTime); }
     if(cl.texts){ cl.texts.forEach(function(t){
       var fs=t.size/100*dims.w, lines=String(t.text).split('\n'), lh=fs*1.2;
       cx.font='800 '+Math.round(fs)+'px Inter, sans-serif'; cx.textAlign='center'; cx.textBaseline='middle';
@@ -1163,7 +1175,15 @@ document.querySelectorAll('#textColors .color-chip').forEach(function(c){
 window.addEventListener('resize',layoutTextOverlays);
 
 /* ---------- CAPTIONS ---------- */
-var recog=null, recogOn=false, liveCap='';
+var recog=null, recogOn=false, liveCap='', liveCapStart=null;
+function flushLiveCap(){
+  var txt=(liveCap||'').trim();
+  if(txt){
+    var t=(typeof liveCapStart==='number')?liveCapStart:(video.currentTime||0);
+    captions.push({t:t,text:txt}); captions.sort(function(a,b){return a.t-b.t}); renderCaps();
+  }
+  liveCap=''; liveCapStart=null;
+}
 var wantSubs=false, recogErr='';
 function syncSubsToggle(){
   var tg=$('subsToggle'); if(!tg) return;
@@ -1180,12 +1200,14 @@ function startRecog(){
   if(recog){ recog.onend=null; recog.onerror=null; recog.onresult=null; try{ recog.abort(); }catch(e){} }
   recog=new SR(); recog.continuous=true; recog.interimResults=true; recog.lang=$('capLang').value;
   recog.onresult=function(ev){
-    var interim='';
+    var interim='', sawFinal=false;
     for(var i=ev.resultIndex;i<ev.results.length;i++){
       var txt=ev.results[i][0].transcript.trim();
-      if(ev.results[i].isFinal){ if(txt){ captions.push({t:video.currentTime,text:txt}); captions.sort(function(a,b){return a.t-b.t}); renderCaps(); } }
+      if(ev.results[i].isFinal){ sawFinal=true; if(txt){ var ft=(typeof liveCapStart==='number')?liveCapStart:video.currentTime; captions.push({t:ft,text:txt}); } }
       else if(txt) interim+=(interim?' ':'')+txt;
     }
+    if(sawFinal){ captions.sort(function(a,b){return a.t-b.t}); renderCaps(); liveCapStart=null; }
+    if(interim){ if(liveCapStart===null) liveCapStart=video.currentTime; }
     liveCap=interim;
   };
   recog.onerror=function(ev){
@@ -1195,9 +1217,10 @@ function startRecog(){
     else if(code==='network'){ capMsg('Caption service needs internet — retrying…',true); }
   };
   recog.onend=function(){
+    flushLiveCap();
     if(wantSubs){ setTimeout(function(){ if(wantSubs) startRecog(); },300); }
     else {
-      recogOn=false; liveCap='';
+      recogOn=false;
       $('capBtn').textContent='Start auto captions';
       if(!recogErr) capMsg('Done');
       syncSubsToggle();
@@ -1208,8 +1231,9 @@ function startRecog(){
 }
 function stopSubs(){
   wantSubs=false;
-  if(recog){ try{ recog.stop(); }catch(e){} }
-  recogOn=false; liveCap='';
+  if(recog){ try{ recog.stop(); }catch(e){ flushLiveCap(); } }
+  else flushLiveCap();
+  recogOn=false;
   $('capBtn').textContent='Start auto captions';
   if(!recogErr) capMsg('Done');
   syncSubsToggle();
@@ -1247,6 +1271,7 @@ $('addCapBtn').addEventListener('click',function(){
 function renderCaps(){
   var box=$('capList'); box.innerHTML='';
   captions.forEach(function(c){ var d=document.createElement('div'); d.className='cap-line'; d.innerHTML='<b>'+fmt(c.t)+'</b> &nbsp;'+c.text.replace(/</g,'&lt;'); box.appendChild(d); });
+  renderClips();
 }
 if(document.fonts&&document.fonts.load){ document.fonts.load('900 40px "Pricedown Bl"').catch(function(){}); }
 applyFormat(); applyCrop(); updateIO(); drawWave();
