@@ -276,6 +276,93 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
 .live-moment-note{width:100%;margin-top:8px;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--stage);font-size:13px;min-height:36px;color:var(--text)}
 .live-moment-note::placeholder{color:var(--faint)}
 .live-moment-btns{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+
+/* ---------- MOBILE ---------- */
+@media(max-width:720px){
+  /* Top bar: compact brand, steps in one tidy row */
+  .topbar{padding:14px 12px 2px;gap:10px}
+  .brand{gap:9px}
+  .brand-mark{width:36px;height:36px;border-radius:9px}
+  .topbar h1{font-size:25px}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%}
+  .step{justify-content:center;padding:5px 4px 5px 5px;font-size:12px;gap:6px;white-space:nowrap}
+  .step b{width:20px;height:20px;font-size:11px;border-radius:5px}
+  .step-arrow{display:none}
+
+  /* Page frame + cards: tighter gutters */
+  .wrap{padding:12px 12px 24px;gap:14px}
+  .stack{gap:14px}
+  .card-h{padding:14px 14px 0}
+  .card-h h2{font-size:18px}
+  .card-h h2 .num{font-size:11.5px;margin-right:6px}
+  .badge{font-size:10px;padding:3px 7px}
+  .pad{padding:12px 14px 16px}
+  .list{padding:12px 14px 16px}
+  .footer{padding:0 14px 20px}
+
+  /* Format picker: shorter cards, no dead space */
+  .fmt-options{grid-template-columns:repeat(2,1fr);gap:8px;padding:12px 14px 0}
+  .fmt-opt{min-height:0;padding:11px 12px;gap:6px;border-radius:9px}
+  .fmt-opt strong{font-size:15px}
+  .fmt-opt small{font-size:11px}
+  .fmt-shape.vertical{width:14px;height:24px}
+  .fmt-shape.wide{width:26px;height:15px}
+  .fmt-shape.square{width:20px;height:20px}
+  .fmt-shape.p45{width:18px;height:22px}
+  .fmt-shape.p34{width:17px;height:23px}
+  .fmt-shape.cine{width:29px;height:13px}
+  .fmt-custom{margin:10px 14px 0;padding:12px}
+  .custom-row{gap:8px}
+  .custom-row label{flex:1;min-width:0}
+  .custom-row input{width:100%}
+  .custom-x{padding-bottom:10px}
+  .custom-row .btn{flex:1 1 100%}
+  .format-foot{padding:12px 14px 14px;gap:10px}
+  .format-foot .chips{width:100%}
+  .format-foot .chip{flex:1}
+  .format-live{width:100%}
+
+  /* Source: link row never overflows, drop zone tighter */
+  .yt-box{margin:12px 14px 0;padding:12px}
+  .yt-row{flex-wrap:nowrap}
+  .yt-row input{flex:1 1 auto;min-width:0}
+  .yt-row .btn{flex:0 0 auto}
+  .drop{margin:12px 14px 0;padding:14px 12px}
+  .drop strong{font-size:15px}
+
+  /* Stage + transport */
+  .stage-wrap{margin:12px 14px 0;padding:10px}
+  .controls{padding:12px 14px 16px}
+  .controls .btn-row .btn{flex:1 1 auto}
+  .wave-wrap{padding:0 14px 16px}
+  .guides-toggle{font-size:11.5px;padding:5px 9px;min-height:32px}
+  .ctl-row{grid-template-columns:68px 1fr 42px;gap:8px}
+  input[type=range]{height:34px}
+
+  /* Live watch: pills wrap instead of squeezing */
+  .live-grid{padding:12px 14px 16px;gap:14px}
+  .live-status-row{gap:8px}
+  .count-pill{min-width:0;flex:1 1 150px;padding:8px 12px}
+  .count-pill b{font-size:19px}
+  .stream-time{min-width:0;flex:1 1 110px;padding:6px 12px}
+  .stream-time b{font-size:17px}
+  .clip-now-btn{min-height:52px;font-size:16px}
+
+  /* Moments / clips: thumbnail goes full width on top */
+  .moment,.clip-item{flex-direction:column;gap:10px}
+  .thumb{width:100%;height:auto;aspect-ratio:16/9}
+  .live-moment-btns{flex-direction:row}
+  .live-moment-btns .small-btn{flex:1}
+
+  /* 16px inputs stop iOS auto-zoom on focus */
+  .yt-row input,.text-input,select,textarea,.custom-row input,.live-moment-note{font-size:16px}
+  .toast{bottom:14px;padding:10px 14px}
+}
+@media(max-width:380px){
+  .fmt-opt strong{font-size:13.5px}
+  .step{font-size:11px;gap:4px}
+  .io-grid{grid-template-columns:1fr 1fr;gap:8px}
+}
 </style>
 </head>
 <body>
