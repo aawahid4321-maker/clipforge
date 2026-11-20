@@ -637,12 +637,14 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
           <div class="ctl-row"><label>Fade out</label><input type="range" id="fadeOutSlider" min="0" max="5" step="0.5" value="0"><output id="fadeOutVal">0s</output></div>
         </div>
         <div class="sec" style="margin-top:4px">
-          <div class="sec-t">Streamer voice <span id="voiceStateLabel">Streamer voice: On</span></div>
+          <div class="sec-t">Streamer voice <span id="voiceStateLabel">Streamer voice: Auto</span></div>
           <div class="chips">
-            <button class="chip toggle active" id="voiceChip" type="button" aria-pressed="true">Streamer voice: On</button>
+            <button class="chip toggle" id="voiceChip" type="button" aria-pressed="false">Streamer voice: On</button>
           </div>
-          <div class="ctl-row" style="margin-top:8px"><label>Voice cut</label><input type="range" id="voiceSlider" min="0" max="100" step="1" value="0" aria-label="Streamer voice cut strength"><output id="voiceVal">0%</output></div>
-          <p class="hint" style="margin:4px 0 0">Cuts the voice pitch band (300 Hz–3.4 kHz) in the centre channel; centred game sounds in the same pitch range get quieter too.</p>
+          <button class="btn primary" id="voiceAutoBtn" type="button" aria-pressed="true" style="width:100%;margin-top:10px;min-height:48px;font-size:15px;font-weight:700">Auto Pitch Audio</button>
+          <div class="ctl-row" style="margin-top:8px"><label>Pitch Audio</label><input type="range" id="voiceSlider" min="0" max="100" step="1" value="80" aria-label="Pitch Audio — streamer voice pitch band cut strength"><output id="voiceVal">80%</output></div>
+          <p class="hint" style="margin:4px 0 0">Pitch Audio cuts the voice pitch band (300 Hz–3.4 kHz) in the centre channel; centred game sounds in the same pitch range get quieter too. In Auto mode the slider sets the maximum cut, applied only while voice is detected.</p>
+          <p class="hint" style="margin:4px 0 0">Auto detection is energy-based and can occasionally cut centred game sounds in the speech band — it is not perfect isolation.</p>
         </div>
         <div class="sec" style="margin-top:4px">
           <div class="sec-t">Background music</div>
@@ -735,7 +737,19 @@ var stage=document.getElementById('stage'), seek=document.getElementById('seek')
 var inPoint=0, outPoint=30, quickDur=30, clips=[], captions=[], videoFile=null;
 var clipFormat='vertical', cropX=50, cropY=50, cropZoom=1, cropAuto=true;
 var keepAudio=true, isMuted=false, origVol=80, fadeIn=0, fadeOut=0;
-var voiceReduction=0, lastVoiceReduction=80;
+var voiceReduction=80, lastVoiceReduction=80;
+var voiceAuto=true, voiceAutoCut=0, voiceAnalyser=null, voiceDetectTimer=null, voicePresent=false, voiceLastHeard=0, exportVoiceOverride=null;
+/* Auto voice detection constants (energy-based, on the centre/mid channel).
+   Speech band 300 Hz-3.4 kHz is compared against surrounding bands
+   (<200 Hz and 4-8 kHz): voice counts as present only when the speech
+   band is both loud enough in absolute terms and clearly above the
+   surrounding game audio. Hysteresis + a short hold stop pumping, and
+   attack/release smoothing stops clicks. */
+var VOICE_AUTO_BAND_LOW=300, VOICE_AUTO_BAND_HIGH=3400;
+var VOICE_AUTO_ON_LEVEL=16, VOICE_AUTO_OFF_LEVEL=10;
+var VOICE_AUTO_ON_RATIO=1.45, VOICE_AUTO_OFF_RATIO=1.15;
+var VOICE_AUTO_ATTACK=0.38, VOICE_AUTO_RELEASE=0.10;
+var VOICE_AUTO_HOLD_MS=420, VOICE_AUTO_POLL_MS=60;
 var musicBuffer=null, musicName='', musicVol=35, musicArrayBuf=null;
 var lastPicked=[], lastDur=0, hasVideo=false, guidesOn=false, safeOn=false;
 var clipLength=30;
@@ -1112,8 +1126,60 @@ function setVoiceCut(strength, immediate){
     else { try{ g.setTargetAtTime(cutDb,t,0.03); }catch(e){ g.value=cutDb; } }
   }
 }
-function applyVoiceReduction(){ setVoiceCut(voiceReduction,false); }
+function voiceAutoEnabled(){
+  if(exportVoiceOverride) return !!exportVoiceOverride.auto;
+  return !!voiceAuto;
+}
+function voiceAutoMax(){
+  if(exportVoiceOverride) return Math.max(0,Math.min(100,exportVoiceOverride.max||0));
+  return Math.max(0,Math.min(100,voiceReduction||0));
+}
+function applyVoiceReduction(){
+  if(voiceAutoEnabled()) setVoiceCut(voiceAutoCut,false);
+  else setVoiceCut(voiceReduction,false);
+}
 function applyVoiceCutForClip(v){ setVoiceCut(v||0,true); }
+/* Live Auto detection: reads the AnalyserNode tapped on the centre (mid)
+   channel, measures speech-band energy vs surrounding bands, and ramps
+   the shared voice cut in/out. Because it drives the shared chain
+   (voiceMidGain + voiceFilters) upstream of both the preview gain and
+   the export track gain, the exact same detection runs during preview
+   and during the real-time MediaRecorder export pass. */
+function startVoiceDetection(){
+  if(voiceDetectTimer) return;
+  voiceDetectTimer=setInterval(function(){
+    if(!actx||!voiceAnalyser) return;
+    if(!voiceAutoEnabled()){
+      if(voiceAutoCut!==0&&!exportVoiceOverride){ voiceAutoCut=0; }
+      return;
+    }
+    var bins=voiceAnalyser.frequencyBinCount;
+    var data=new Uint8Array(bins);
+    try{ voiceAnalyser.getByteFrequencyData(data); }catch(e){ return; }
+    var binHz=(actx.sampleRate||44100)/voiceAnalyser.fftSize;
+    var sSum=0,sN=0,oSum=0,oN=0,i,f;
+    for(i=0;i<bins;i++){
+      f=i*binHz;
+      if(f>=VOICE_AUTO_BAND_LOW&&f<=VOICE_AUTO_BAND_HIGH){ sSum+=data[i]; sN++; }
+      else if(f<200||(f>=4000&&f<=8000)){ oSum+=data[i]; oN++; }
+    }
+    var speech=sN? sSum/sN : 0;
+    var surround=oN? oSum/oN : 0;
+    var ratio=speech/Math.max(1,surround);
+    var now=(window.performance&&performance.now)?performance.now():Date.now();
+    if(speech>=VOICE_AUTO_ON_LEVEL&&ratio>=VOICE_AUTO_ON_RATIO){ voicePresent=true; voiceLastHeard=now; }
+    else if(voicePresent&&(speech<VOICE_AUTO_OFF_LEVEL||ratio<VOICE_AUTO_OFF_RATIO)){
+      if(now-voiceLastHeard>VOICE_AUTO_HOLD_MS) voicePresent=false;
+    }
+    var maxCut=voiceAutoMax();
+    if(maxCut<=0&&voiceAuto&&!exportVoiceOverride) maxCut=80;
+    var target=voicePresent? maxCut : 0;
+    var k=target>voiceAutoCut? VOICE_AUTO_ATTACK : VOICE_AUTO_RELEASE;
+    voiceAutoCut+=(target-voiceAutoCut)*k;
+    if(Math.abs(voiceAutoCut-target)<0.4) voiceAutoCut=target;
+    setVoiceCut(voiceAutoCut,false);
+  },VOICE_AUTO_POLL_MS);
+}
 function ensureGraph(){
   if(actx) return true;
   try{
@@ -1152,6 +1218,12 @@ function ensureGraph(){
     midL.connect(midBus); midR.connect(midBus);
     splitter.connect(sideL,0); splitter.connect(sideR,1);
     sideL.connect(sideBus); sideR.connect(sideBus);
+    /* Auto detection tap: AnalyserNode on the centre (mid) channel,
+       fed from the raw mid signal before any cut is applied. */
+    voiceAnalyser=actx.createAnalyser();
+    voiceAnalyser.fftSize=2048;
+    voiceAnalyser.smoothingTimeConstant=0.55;
+    midBus.connect(voiceAnalyser);
     midBus.connect(voiceMidGain);
     var midTail=voiceMidGain;
     for(var fj=0;fj<voiceFilters.length;fj++){ midTail.connect(voiceFilters[fj]); midTail=voiceFilters[fj]; }
@@ -1160,8 +1232,8 @@ function ensureGraph(){
     sideBus.connect(sideToR); sideToR.connect(merger,0,1);
     merger.connect(voiceOut);
     vidSource.connect(voiceIn); voiceOut.connect(previewGain); previewGain.connect(actx.destination);
-    video.muted=false; video.volume=1; applyVoiceReduction(); applyAudioPreview(); return true;
-  }catch(e){ actx=null; vidSource=null; previewGain=null; voiceIn=null; voiceOut=null; voiceMidGain=null; voiceFilters=[]; return false; }
+    video.muted=false; video.volume=1; applyVoiceReduction(); applyAudioPreview(); startVoiceDetection(); return true;
+  }catch(e){ actx=null; vidSource=null; previewGain=null; voiceIn=null; voiceOut=null; voiceMidGain=null; voiceFilters=[]; voiceAnalyser=null; return false; }
 }
 function eagerGraph(){
   if(ensureGraph()&&actx&&actx.resume){ try{ var p=actx.resume(); if(p&&p.catch) p.catch(function(){}); }catch(e){} }
@@ -1181,13 +1253,30 @@ $('fadeInSlider').addEventListener('input',function(){ fadeIn=parseFloat(this.va
 $('fadeOutSlider').addEventListener('input',function(){ fadeOut=parseFloat(this.value); $('fadeOutVal').textContent=fadeOut+'s'; });
 function syncVoiceUI(){
   var on=!(voiceReduction>0);
-  var chip=$('voiceChip'); if(chip){ chip.textContent=on?'Streamer voice: On':'Streamer voice: Off'; chip.classList.toggle('active',on); chip.setAttribute('aria-pressed',on?'true':'false'); }
-  var lbl=$('voiceStateLabel'); if(lbl) lbl.textContent=on?'Streamer voice: On':'Streamer voice: Off';
+  var chip=$('voiceChip'); if(chip){ chip.textContent=on?'Streamer voice: On':'Streamer voice: Off'; chip.classList.toggle('active',!voiceAuto&&on); chip.setAttribute('aria-pressed',(!voiceAuto&&on)?'true':'false'); }
+  var lbl=$('voiceStateLabel'); if(lbl) lbl.textContent=voiceAuto?'Streamer voice: Auto':(on?'Streamer voice: On':'Streamer voice: Off');
+  var ab=$('voiceAutoBtn'); if(ab){ ab.textContent=voiceAuto?'Auto Pitch Audio · On':'Auto Pitch Audio'; ab.setAttribute('aria-pressed',voiceAuto?'true':'false'); ab.className=voiceAuto?'btn primary':'btn'; }
   var out=$('voiceVal'); if(out) out.textContent=Math.round(voiceReduction)+'%';
   var sl=$('voiceSlider'); if(sl&&document.activeElement!==sl) sl.value=voiceReduction;
 }
+var voiceAutoBtnEl=$('voiceAutoBtn');
+if(voiceAutoBtnEl) voiceAutoBtnEl.addEventListener('click',function(){
+  eagerGraph();
+  voiceAuto=!voiceAuto;
+  voicePresent=false; voiceAutoCut=0;
+  if(voiceAuto){
+    if(voiceReduction<=0){ voiceReduction=lastVoiceReduction||80; }
+    startVoiceDetection();
+    toast('Auto Pitch Audio on — voice cut follows the streamer');
+  } else {
+    applyVoiceReduction();
+    toast('Auto Pitch Audio off');
+  }
+  syncVoiceUI();
+});
 $('voiceChip').addEventListener('click',function(){
   eagerGraph();
+  if(voiceAuto){ voiceAuto=false; voicePresent=false; voiceAutoCut=0; }
   if(voiceReduction>0){ lastVoiceReduction=voiceReduction; voiceReduction=0; }
   else { voiceReduction=lastVoiceReduction||80; var sl=$('voiceSlider'); if(sl) sl.value=voiceReduction; }
   syncVoiceUI(); applyVoiceReduction();
@@ -1197,7 +1286,10 @@ $('voiceSlider').addEventListener('input',function(){
   voiceReduction=parseFloat(this.value)||0;
   if(voiceReduction>0) lastVoiceReduction=voiceReduction;
   $('voiceVal').textContent=Math.round(voiceReduction)+'%';
-  syncVoiceUI(); applyVoiceReduction();
+  syncVoiceUI();
+  /* Manual mode: slider sets the cut directly. Auto mode: slider sets
+     the maximum cut the detection loop may apply — the loop drives it. */
+  if(!voiceAuto) applyVoiceReduction();
 });
 syncVoiceUI();
 $('musicVolSlider').addEventListener('input',function(){ musicVol=parseFloat(this.value); $('musicVolVal').textContent=musicVol+'%'; applyAudioPreview(); });
@@ -1309,7 +1401,7 @@ function renderMoments(picked,dur){
 /* ---------- CLIPS ---------- */
 function settingsSnapshot(){
   var d=outDims();
-  return {format:clipFormat,w:d.w,h:d.h,ratio:ratioLabel(),cropX:cropX,cropY:cropY,zoom:cropZoom,keep:keepAudio,mute:isMuted,vol:origVol,fadeIn:fadeIn,fadeOut:fadeOut,voiceReduction:voiceReduction,musicBuffer:musicBuffer,musicName:musicName,musicVol:musicVol,style:clipStyle,hook:hookText,clipTitle:clipTitle,clipSubtitle:clipSubtitle,texts:textItems.map(function(t){return {text:t.text,x:t.x,y:t.y,size:t.size,color:t.color};})};
+  return {format:clipFormat,w:d.w,h:d.h,ratio:ratioLabel(),cropX:cropX,cropY:cropY,zoom:cropZoom,keep:keepAudio,mute:isMuted,vol:origVol,fadeIn:fadeIn,fadeOut:fadeOut,voiceReduction:voiceReduction,voiceAuto:voiceAuto,voiceMode:voiceAuto?'auto':'manual',musicBuffer:musicBuffer,musicName:musicName,musicVol:musicVol,style:clipStyle,hook:hookText,clipTitle:clipTitle,clipSubtitle:clipSubtitle,texts:textItems.map(function(t){return {text:t.text,x:t.x,y:t.y,size:t.size,color:t.color};})};
 }
 function captureThumb(){
   try{
@@ -1388,10 +1480,13 @@ function renderClips(){
     var hasCaps=(cl.captions&&cl.captions.length>0)||captions.some(function(c){ return c.t+CAP_DUR>cl.s && c.t<cl.e; });
     div.innerHTML=(cl.thumb?'<img class="thumb" src="'+cl.thumb+'" alt="Clip thumbnail">':'<div class="thumb"></div>')+
       '<div class="clip-main"><b>'+cl.name+'</b><span>'+fmt(cl.s)+' → '+fmt(cl.e)+' · '+Math.round(cl.e-cl.s)+'s</span>'+
-      '<div class="tagrow"><span class="tag">'+(cl.ratio||'')+'</span><span class="tag">'+(cl.w||'')+'×'+(cl.h||'')+'</span><span class="tag">'+styleLabel(cl.style)+'</span><span class="tag">'+snd+'</span>'+(cl.voiceReduction?'<span class="tag">Voice cut '+cl.voiceReduction+'%</span>':'')+(cl.musicName?'<span class="tag">Music</span>':'')+(hasCaps?'<span class="tag">Captions</span>':'')+(cl.hook?'<span class="tag">Hook</span>':'')+(cl.clipTitle?'<span class="tag">Title</span>':'')+'</div>'+
+      '<div class="tagrow"><span class="tag">'+(cl.ratio||'')+'</span><span class="tag">'+(cl.w||'')+'×'+(cl.h||'')+'</span><span class="tag">'+styleLabel(cl.style)+'</span><span class="tag">'+snd+'</span>'+((cl.voiceAuto||cl.voiceMode==='auto')?'<span class="tag">Voice Auto</span>':(cl.voiceReduction?'<span class="tag">Voice cut '+cl.voiceReduction+'%</span>':''))+(cl.musicName?'<span class="tag">Music</span>':'')+(hasCaps?'<span class="tag">Captions</span>':'')+(cl.hook?'<span class="tag">Hook</span>':'')+(cl.clipTitle?'<span class="tag">Title</span>':'')+'</div>'+
       '<div style="margin-top:9px;display:flex;gap:6px;flex-wrap:wrap"><button class="small-btn play-cl">Play</button><button class="small-btn export dl-cl">Export</button></div></div>';
     div.querySelector('.play-cl').addEventListener('click',function(){
       clipFormat=cl.format; cropX=cl.cropX; cropY=cl.cropY; cropZoom=cl.zoom;
+      if(typeof cl.voiceReduction==='number') voiceReduction=cl.voiceReduction;
+      voiceAuto=!!(cl.voiceAuto||cl.voiceMode==='auto'); voicePresent=false; voiceAutoCut=0;
+      syncVoiceUI(); eagerGraph(); if(voiceAuto) startVoiceDetection(); else applyVoiceReduction();
       if(cl.format==='custom'&&cl.w){ customW=cl.w; customH=cl.h; $('customW').value=cl.w; $('customH').value=cl.h; }
       textItems=(cl.texts||[]).map(function(t){ return {id:++textSeq,text:t.text,x:t.x,y:t.y,size:t.size,color:t.color}; });
       selTextId=null; renderTextOverlays();
@@ -1602,7 +1697,19 @@ async function exportClip(cl){
       if(voiceOut){
         try{ voiceOut.disconnect(); }catch(e){}
         voiceOut.connect(trackGain);
-        applyVoiceCutForClip(cl.voiceReduction);
+        if(cl.voiceAuto||cl.voiceMode==='auto'){
+          /* Auto in export: run the same live detection during the
+             real-time recording pass, capped at the clip's Pitch Audio
+             value. The detection loop drives the shared chain, so the
+             recorded track gets the automatic cut. */
+          exportVoiceOverride={auto:true,max:(cl.voiceReduction>0?cl.voiceReduction:80)};
+          voicePresent=false; voiceAutoCut=0; setVoiceCut(0,true); startVoiceDetection();
+        } else {
+          /* Manual clip: pin the override off so the live Auto loop
+             cannot fight the clip's static cut during recording. */
+          exportVoiceOverride={auto:false,max:cl.voiceReduction||0};
+          applyVoiceCutForClip(cl.voiceReduction);
+        }
       } else {
         vidSource.disconnect(); vidSource.connect(trackGain);
       }
@@ -1623,16 +1730,18 @@ async function exportClip(cl){
     }catch(e){ graphOK=false; }
   }
   if(!graphOK){
+    exportVoiceOverride=null;
     try{ var vs=video.captureStream(); vs.getAudioTracks().forEach(function(tr){ stream.addTrack(tr); }); }catch(e){}
     if(actx&&voiceOut&&previewGain){ try{ voiceOut.disconnect(); voiceOut.connect(previewGain); applyVoiceReduction(); }catch(e){} }
     else if(actx&&vidSource&&previewGain){ try{ vidSource.disconnect(); vidSource.connect(previewGain); }catch(e){} }
   }
-  var rec; try{ rec=new MediaRecorder(stream, pickMime()?{mimeType:pickMime()}:undefined); }catch(e){ prog.style.display='none'; toast('Recorder not supported in this browser'); return; }
+  var rec; try{ rec=new MediaRecorder(stream, pickMime()?{mimeType:pickMime()}:undefined); }catch(e){ exportVoiceOverride=null; prog.style.display='none'; toast('Recorder not supported in this browser'); return; }
   var chunks=[]; rec.ondataavailable=function(e){if(e.data.size)chunks.push(e.data);};
   rec.onstop=function(){
     var blob=new Blob(chunks,{type:'video/webm'}); var a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download='clipforge-'+(cl.w||720)+'x'+(cl.h||1280)+'-'+fmt(cl.s).replace(/:/g,'-')+'.webm'; a.click();
     prog.style.display='none';
+    exportVoiceOverride=null; voicePresent=false; if(!voiceAuto) voiceAutoCut=0;
     if(graphOK){ try{ trackGain.disconnect(); if(musicGain) musicGain.disconnect(); if(voiceOut&&previewGain){ voiceOut.disconnect(); voiceOut.connect(previewGain); } else if(vidSource&&previewGain){ vidSource.disconnect(); vidSource.connect(previewGain); } applyVoiceReduction(); applyAudioPreview(); }catch(e){} }
     toast('Clip exported');
   };
