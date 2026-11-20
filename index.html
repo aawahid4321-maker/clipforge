@@ -637,6 +637,14 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
           <div class="ctl-row"><label>Fade out</label><input type="range" id="fadeOutSlider" min="0" max="5" step="0.5" value="0"><output id="fadeOutVal">0s</output></div>
         </div>
         <div class="sec" style="margin-top:4px">
+          <div class="sec-t">Streamer voice <span id="voiceStateLabel">Streamer voice: On</span></div>
+          <div class="chips">
+            <button class="chip toggle active" id="voiceChip" type="button" aria-pressed="true">Streamer voice: On</button>
+          </div>
+          <div class="ctl-row" style="margin-top:8px"><label>Voice cut</label><input type="range" id="voiceSlider" min="0" max="100" step="1" value="0" aria-label="Streamer voice cut strength"><output id="voiceVal">0%</output></div>
+          <p class="hint" style="margin:4px 0 0">Cuts the voice pitch band (300 Hz–3.4 kHz) in the centre channel; centred game sounds in the same pitch range get quieter too.</p>
+        </div>
+        <div class="sec" style="margin-top:4px">
           <div class="sec-t">Background music</div>
           <div class="btn-row">
             <label class="btn" style="margin:0;cursor:pointer">Add music<input type="file" id="musicInput" accept="audio/*" style="display:none"></label>
@@ -727,6 +735,7 @@ var stage=document.getElementById('stage'), seek=document.getElementById('seek')
 var inPoint=0, outPoint=30, quickDur=30, clips=[], captions=[], videoFile=null;
 var clipFormat='vertical', cropX=50, cropY=50, cropZoom=1, cropAuto=true;
 var keepAudio=true, isMuted=false, origVol=80, fadeIn=0, fadeOut=0;
+var voiceReduction=0, lastVoiceReduction=80;
 var musicBuffer=null, musicName='', musicVol=35, musicArrayBuf=null;
 var lastPicked=[], lastDur=0, hasVideo=false, guidesOn=false, safeOn=false;
 var clipLength=30;
@@ -803,7 +812,7 @@ function loadFile(file){
   hasVideo=true; stage.classList.remove('no-video'); syncGuides();
   $('videoEmpty').style.display='none'; $('liveDot').style.display='block';
   if(ytId){ var st=$('ytStatus'); st.className='yt-status ok'; st.textContent='Ready'; $('ytHelp').classList.remove('on'); hideYtFallback(); }
-  applyAudioPreview(); updateOverlays(); toast('Loaded: '+file.name);
+  eagerGraph(); applyAudioPreview(); updateOverlays(); toast('Loaded: '+file.name);
 }
 /* ---------- YOUTUBE LINK ---------- */
 var ytId='';
@@ -873,6 +882,7 @@ dropZone.addEventListener('drop',function(e){e.preventDefault(); if(e.dataTransf
 document.addEventListener('dragover',function(e){e.preventDefault();});
 document.addEventListener('drop',function(e){e.preventDefault();});
 video.addEventListener('loadedmetadata',function(){
+  eagerGraph();
   durTimeEl.textContent=fmt(video.duration); seek.max=video.duration;
   $('inRange').max=video.duration; $('outRange').max=video.duration;
   $('inNum').max=video.duration; $('outNum').max=video.duration;
@@ -922,7 +932,7 @@ seek.addEventListener('input',function(){ if(video.duration) video.currentTime=p
 
 /* ---------- TRANSPORT ---------- */
 $('playBtn').addEventListener('click',togglePlay);
-function togglePlay(){ if(!video.src){toast('Load a video first');return;} if(video.paused) video.play(); else video.pause(); }
+function togglePlay(){ if(!video.src){toast('Load a video first');return;} eagerGraph(); if(video.paused) video.play(); else video.pause(); }
 video.addEventListener('play',function(){$('playBtn').textContent='Pause';});
 video.addEventListener('pause',function(){$('playBtn').textContent='Play'; stopMusicPreview();});
 $('backBtn').addEventListener('click',function(){video.currentTime=Math.max(0,video.currentTime-10);});
@@ -1083,16 +1093,81 @@ $('autoCropBtn').addEventListener('click', async function(){
 });
 
 /* ---------- AUDIO ---------- */
-var actx=null, vidSource=null, previewGain=null;
+var actx=null, vidSource=null, previewGain=null, voiceIn=null, voiceOut=null, voiceMidGain=null, voiceFilters=[];
+/* Voice cut strength (0-100) drives BOTH cuts on the shared chain:
+   1) mid (centre) attenuation, and 2) a peaking-filter cut across the
+   speech pitch band (300 Hz-3.4 kHz) on that same centre signal.
+   The centred voice is hit twice; stereo-wide (side) game audio passes. */
+function setVoiceCut(strength, immediate){
+  if(!actx) return;
+  var s=Math.max(0,Math.min(1,((strength||0)/100)));
+  var midLvl=1-s, cutDb=-18*s, t=actx.currentTime;
+  if(voiceMidGain){
+    if(immediate){ try{ voiceMidGain.gain.setValueAtTime(midLvl,t); }catch(e){ voiceMidGain.gain.value=midLvl; } }
+    else { try{ voiceMidGain.gain.setTargetAtTime(midLvl,t,0.03); }catch(e){ voiceMidGain.gain.value=midLvl; } }
+  }
+  for(var i=0;i<voiceFilters.length;i++){
+    var g=voiceFilters[i].gain;
+    if(immediate){ try{ g.setValueAtTime(cutDb,t); }catch(e){ g.value=cutDb; } }
+    else { try{ g.setTargetAtTime(cutDb,t,0.03); }catch(e){ g.value=cutDb; } }
+  }
+}
+function applyVoiceReduction(){ setVoiceCut(voiceReduction,false); }
+function applyVoiceCutForClip(v){ setVoiceCut(v||0,true); }
 function ensureGraph(){
   if(actx) return true;
   try{
-    var AC=window.AudioContext||window.webkitAudioContext; actx=new AC();
+    var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return false; actx=new AC();
     vidSource=actx.createMediaElementSource(video);
-    previewGain=actx.createGain(); vidSource.connect(previewGain); previewGain.connect(actx.destination);
-    video.muted=false; video.volume=1; applyAudioPreview(); return true;
-  }catch(e){ actx=null; return false; }
+    previewGain=actx.createGain();
+    /* Shared voice-cut chain — upstream of BOTH previewGain and export trackGain.
+       Mid/side split: Mid = (L+R)/2 carries the centred voice; Side = (L-R)/2
+       carries stereo-wide game audio. The Mid path gets hit twice:
+       (1) centre attenuation via voiceMidGain, and (2) a series of peaking
+       filters cutting the speech pitch band 300 Hz-3.4 kHz, where most voice
+       energy and intelligibility sit. The Side path passes unfiltered, so
+       stereo-wide gameplay audio stays. Lout = MidCut + Side, Rout = MidCut - Side. */
+    voiceIn=actx.createGain(); voiceOut=actx.createGain();
+    var splitter=actx.createChannelSplitter(2);
+    var merger=actx.createChannelMerger(2);
+    var midL=actx.createGain(); midL.gain.value=0.5;
+    var midR=actx.createGain(); midR.gain.value=0.5;
+    var sideL=actx.createGain(); sideL.gain.value=0.5;
+    var sideR=actx.createGain(); sideR.gain.value=-0.5;
+    var midBus=actx.createGain();
+    var sideBus=actx.createGain();
+    voiceMidGain=actx.createGain(); voiceMidGain.gain.value=1-((voiceReduction||0)/100);
+    var sideToR=actx.createGain(); sideToR.gain.value=-1;
+    /* Vocal-band EQ cut on the centre (Mid) signal only */
+    voiceFilters=[];
+    var cutDb=-18*Math.max(0,Math.min(1,((voiceReduction||0)/100)));
+    var bandFreqs=[300,520,880,1450,2300,3300];
+    for(var fi=0;fi<bandFreqs.length;fi++){
+      var bf=actx.createBiquadFilter();
+      bf.type='peaking'; bf.frequency.value=bandFreqs[fi]; bf.Q.value=1.1; bf.gain.value=cutDb;
+      voiceFilters.push(bf);
+    }
+    voiceIn.connect(splitter);
+    splitter.connect(midL,0); splitter.connect(midR,1);
+    midL.connect(midBus); midR.connect(midBus);
+    splitter.connect(sideL,0); splitter.connect(sideR,1);
+    sideL.connect(sideBus); sideR.connect(sideBus);
+    midBus.connect(voiceMidGain);
+    var midTail=voiceMidGain;
+    for(var fj=0;fj<voiceFilters.length;fj++){ midTail.connect(voiceFilters[fj]); midTail=voiceFilters[fj]; }
+    midTail.connect(merger,0,0); midTail.connect(merger,0,1);
+    sideBus.connect(merger,0,0);
+    sideBus.connect(sideToR); sideToR.connect(merger,0,1);
+    merger.connect(voiceOut);
+    vidSource.connect(voiceIn); voiceOut.connect(previewGain); previewGain.connect(actx.destination);
+    video.muted=false; video.volume=1; applyVoiceReduction(); applyAudioPreview(); return true;
+  }catch(e){ actx=null; vidSource=null; previewGain=null; voiceIn=null; voiceOut=null; voiceMidGain=null; voiceFilters=[]; return false; }
 }
+function eagerGraph(){
+  if(ensureGraph()&&actx&&actx.resume){ try{ var p=actx.resume(); if(p&&p.catch) p.catch(function(){}); }catch(e){} }
+}
+document.addEventListener('pointerdown',eagerGraph);
+document.addEventListener('keydown',eagerGraph);
 function applyAudioPreview(){
   var v=(keepAudio&&!isMuted)? origVol/100 : 0;
   if(previewGain&&actx) previewGain.gain.value=v;
@@ -1104,6 +1179,27 @@ $('muteChip').addEventListener('click',function(){ isMuted=!isMuted; this.classL
 $('volSlider').addEventListener('input',function(){ origVol=parseFloat(this.value); $('volVal').textContent=origVol+'%'; applyAudioPreview(); });
 $('fadeInSlider').addEventListener('input',function(){ fadeIn=parseFloat(this.value); $('fadeInVal').textContent=fadeIn+'s'; });
 $('fadeOutSlider').addEventListener('input',function(){ fadeOut=parseFloat(this.value); $('fadeOutVal').textContent=fadeOut+'s'; });
+function syncVoiceUI(){
+  var on=!(voiceReduction>0);
+  var chip=$('voiceChip'); if(chip){ chip.textContent=on?'Streamer voice: On':'Streamer voice: Off'; chip.classList.toggle('active',on); chip.setAttribute('aria-pressed',on?'true':'false'); }
+  var lbl=$('voiceStateLabel'); if(lbl) lbl.textContent=on?'Streamer voice: On':'Streamer voice: Off';
+  var out=$('voiceVal'); if(out) out.textContent=Math.round(voiceReduction)+'%';
+  var sl=$('voiceSlider'); if(sl&&document.activeElement!==sl) sl.value=voiceReduction;
+}
+$('voiceChip').addEventListener('click',function(){
+  eagerGraph();
+  if(voiceReduction>0){ lastVoiceReduction=voiceReduction; voiceReduction=0; }
+  else { voiceReduction=lastVoiceReduction||80; var sl=$('voiceSlider'); if(sl) sl.value=voiceReduction; }
+  syncVoiceUI(); applyVoiceReduction();
+});
+$('voiceSlider').addEventListener('input',function(){
+  eagerGraph();
+  voiceReduction=parseFloat(this.value)||0;
+  if(voiceReduction>0) lastVoiceReduction=voiceReduction;
+  $('voiceVal').textContent=Math.round(voiceReduction)+'%';
+  syncVoiceUI(); applyVoiceReduction();
+});
+syncVoiceUI();
 $('musicVolSlider').addEventListener('input',function(){ musicVol=parseFloat(this.value); $('musicVolVal').textContent=musicVol+'%'; applyAudioPreview(); });
 $('musicInput').addEventListener('change', async function(){
   var f=this.files[0]; if(!f) return; musicName=f.name;
@@ -1213,7 +1309,7 @@ function renderMoments(picked,dur){
 /* ---------- CLIPS ---------- */
 function settingsSnapshot(){
   var d=outDims();
-  return {format:clipFormat,w:d.w,h:d.h,ratio:ratioLabel(),cropX:cropX,cropY:cropY,zoom:cropZoom,keep:keepAudio,mute:isMuted,vol:origVol,fadeIn:fadeIn,fadeOut:fadeOut,musicBuffer:musicBuffer,musicName:musicName,musicVol:musicVol,style:clipStyle,hook:hookText,clipTitle:clipTitle,clipSubtitle:clipSubtitle,texts:textItems.map(function(t){return {text:t.text,x:t.x,y:t.y,size:t.size,color:t.color};})};
+  return {format:clipFormat,w:d.w,h:d.h,ratio:ratioLabel(),cropX:cropX,cropY:cropY,zoom:cropZoom,keep:keepAudio,mute:isMuted,vol:origVol,fadeIn:fadeIn,fadeOut:fadeOut,voiceReduction:voiceReduction,musicBuffer:musicBuffer,musicName:musicName,musicVol:musicVol,style:clipStyle,hook:hookText,clipTitle:clipTitle,clipSubtitle:clipSubtitle,texts:textItems.map(function(t){return {text:t.text,x:t.x,y:t.y,size:t.size,color:t.color};})};
 }
 function captureThumb(){
   try{
@@ -1292,7 +1388,7 @@ function renderClips(){
     var hasCaps=(cl.captions&&cl.captions.length>0)||captions.some(function(c){ return c.t+CAP_DUR>cl.s && c.t<cl.e; });
     div.innerHTML=(cl.thumb?'<img class="thumb" src="'+cl.thumb+'" alt="Clip thumbnail">':'<div class="thumb"></div>')+
       '<div class="clip-main"><b>'+cl.name+'</b><span>'+fmt(cl.s)+' → '+fmt(cl.e)+' · '+Math.round(cl.e-cl.s)+'s</span>'+
-      '<div class="tagrow"><span class="tag">'+(cl.ratio||'')+'</span><span class="tag">'+(cl.w||'')+'×'+(cl.h||'')+'</span><span class="tag">'+styleLabel(cl.style)+'</span><span class="tag">'+snd+'</span>'+(cl.musicName?'<span class="tag">Music</span>':'')+(hasCaps?'<span class="tag">Captions</span>':'')+(cl.hook?'<span class="tag">Hook</span>':'')+(cl.clipTitle?'<span class="tag">Title</span>':'')+'</div>'+
+      '<div class="tagrow"><span class="tag">'+(cl.ratio||'')+'</span><span class="tag">'+(cl.w||'')+'×'+(cl.h||'')+'</span><span class="tag">'+styleLabel(cl.style)+'</span><span class="tag">'+snd+'</span>'+(cl.voiceReduction?'<span class="tag">Voice cut '+cl.voiceReduction+'%</span>':'')+(cl.musicName?'<span class="tag">Music</span>':'')+(hasCaps?'<span class="tag">Captions</span>':'')+(cl.hook?'<span class="tag">Hook</span>':'')+(cl.clipTitle?'<span class="tag">Title</span>':'')+'</div>'+
       '<div style="margin-top:9px;display:flex;gap:6px;flex-wrap:wrap"><button class="small-btn play-cl">Play</button><button class="small-btn export dl-cl">Export</button></div></div>';
     div.querySelector('.play-cl').addEventListener('click',function(){
       clipFormat=cl.format; cropX=cl.cropX; cropY=cl.cropY; cropZoom=cl.zoom;
@@ -1503,7 +1599,13 @@ async function exportClip(cl){
       await actx.resume();
       audioDest=actx.createMediaStreamDestination();
       trackGain=actx.createGain();
-      vidSource.disconnect(); vidSource.connect(trackGain);
+      if(voiceOut){
+        try{ voiceOut.disconnect(); }catch(e){}
+        voiceOut.connect(trackGain);
+        applyVoiceCutForClip(cl.voiceReduction);
+      } else {
+        vidSource.disconnect(); vidSource.connect(trackGain);
+      }
       trackGain.connect(actx.destination); trackGain.connect(audioDest);
       var vol=(cl.keep&&!cl.mute)? cl.vol/100 : 0, dur=cl.e-cl.s, t0=actx.currentTime+0.05;
       if(cl.fadeIn>0){ trackGain.gain.setValueAtTime(0,t0); trackGain.gain.linearRampToValueAtTime(vol,t0+cl.fadeIn); }
@@ -1522,7 +1624,8 @@ async function exportClip(cl){
   }
   if(!graphOK){
     try{ var vs=video.captureStream(); vs.getAudioTracks().forEach(function(tr){ stream.addTrack(tr); }); }catch(e){}
-    if(actx&&vidSource&&previewGain){ try{ vidSource.disconnect(); vidSource.connect(previewGain); }catch(e){} }
+    if(actx&&voiceOut&&previewGain){ try{ voiceOut.disconnect(); voiceOut.connect(previewGain); applyVoiceReduction(); }catch(e){} }
+    else if(actx&&vidSource&&previewGain){ try{ vidSource.disconnect(); vidSource.connect(previewGain); }catch(e){} }
   }
   var rec; try{ rec=new MediaRecorder(stream, pickMime()?{mimeType:pickMime()}:undefined); }catch(e){ prog.style.display='none'; toast('Recorder not supported in this browser'); return; }
   var chunks=[]; rec.ondataavailable=function(e){if(e.data.size)chunks.push(e.data);};
@@ -1530,7 +1633,7 @@ async function exportClip(cl){
     var blob=new Blob(chunks,{type:'video/webm'}); var a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download='clipforge-'+(cl.w||720)+'x'+(cl.h||1280)+'-'+fmt(cl.s).replace(/:/g,'-')+'.webm'; a.click();
     prog.style.display='none';
-    if(graphOK){ try{ trackGain.disconnect(); if(musicGain) musicGain.disconnect(); vidSource.disconnect(); vidSource.connect(previewGain); applyAudioPreview(); }catch(e){} }
+    if(graphOK){ try{ trackGain.disconnect(); if(musicGain) musicGain.disconnect(); if(voiceOut&&previewGain){ voiceOut.disconnect(); voiceOut.connect(previewGain); } else if(vidSource&&previewGain){ vidSource.disconnect(); vidSource.connect(previewGain); } applyVoiceReduction(); applyAudioPreview(); }catch(e){} }
     toast('Clip exported');
   };
   await seekTo(cl.s);
