@@ -236,6 +236,8 @@ canvas#wave{width:100%;height:78px;background:var(--panel2);border-radius:8px;di
 
 /* ---------- LISTS ---------- */
 .moment,.clip-item{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;gap:12px;background:var(--panel);align-items:flex-start}
+.clip-item{cursor:pointer}
+.clip-item.selected{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px var(--accent),0 0 16px rgba(255,77,157,.35)}
 .thumb{width:92px;height:58px;border-radius:6px;background:var(--panel2);object-fit:cover;flex-shrink:0}
 .moment-main,.clip-main{flex:1;min-width:0}
 .moment-main b,.clip-main b{font-family:"Anton","Inter",sans-serif;font-size:17px;font-weight:400;letter-spacing:.03em;text-transform:uppercase;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
@@ -723,6 +725,7 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
         </div>
         <span class="badge" id="clipCount">0 ready</span>
       </div>
+      <p class="hint" style="margin:10px 20px 0">Clip select karein, Delete key se delete karein</p>
       <div class="list" id="clipsList"><div class="empty">No clips yet</div></div>
     </section>
   </aside>
@@ -735,6 +738,7 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
 var video=document.getElementById('video'), fileInput=document.getElementById('fileInput'), dropZone=document.getElementById('dropZone');
 var stage=document.getElementById('stage'), seek=document.getElementById('seek'), curTimeEl=document.getElementById('curTime'), durTimeEl=document.getElementById('durTime');
 var inPoint=0, outPoint=30, quickDur=30, clips=[], captions=[], videoFile=null;
+var selectedClipId=null;
 var clipFormat='vertical', cropX=50, cropY=50, cropZoom=1, cropAuto=true;
 var keepAudio=true, isMuted=false, origVol=80, fadeIn=0, fadeOut=0;
 var voiceReduction=80, lastVoiceReduction=80;
@@ -956,7 +960,8 @@ $('previewBtn').addEventListener('click',function(){
   clearInterval(video._pv); video._pv=setInterval(function(){ if(video.currentTime>=outPoint){video.pause(); clearInterval(video._pv);} },200);
 });
 document.addEventListener('keydown',function(e){
-  var tag=e.target.tagName; if(tag==='TEXTAREA'||tag==='SELECT'||(tag==='INPUT'&&e.target.type!=='range')) return;
+  var tag=e.target.tagName; if(tag==='TEXTAREA'||tag==='SELECT'||(tag==='INPUT'&&e.target.type!=='range')||e.target.isContentEditable) return;
+  if((e.key==='Delete'||e.key==='Backspace')&&selectedClipId!=null){ e.preventDefault(); deleteClip(selectedClipId); return; }
   if(e.code==='Space'){e.preventDefault(); togglePlay();}
   if(e.key==='i'||e.key==='I') $('setInBtn').click();
   if(e.key==='o'||e.key==='O') $('setOutBtn').click();
@@ -1468,20 +1473,36 @@ $('autoClipBtn').addEventListener('click', async function(){
   setTimeout(function(){ prog.style.display='none'; },600);
   btn.disabled=false; btn.textContent='Auto clip';
 });
+function deleteClip(id){
+  var idx=-1;
+  for(var i=0;i<clips.length;i++){ if(clips[i].id===id){ idx=i; break; } }
+  if(idx<0) return;
+  /* The clip object itself carries its snapshot, captions and voice
+     setting, so removing it from the array removes all of that state. */
+  clips.splice(idx,1);
+  if(selectedClipId===id) selectedClipId=null;
+  renderClips();
+  toast('Clip deleted');
+}
 function renderClips(){
   $('clipCount').textContent=clips.length+' ready';
   var list=$('clipsList');
-  if(!clips.length){list.innerHTML='<div class="empty">No clips yet</div>'; return;}
+  if(!clips.length){ selectedClipId=null; list.innerHTML='<div class="empty">No clips yet</div>'; return; }
   list.innerHTML='';
   clips.forEach(function(cl){
-    var div=document.createElement('div'); div.className='clip-item';
+    var div=document.createElement('div'); div.className='clip-item'+(cl.id===selectedClipId?' selected':'');
+    div.addEventListener('click',function(){
+      selectedClipId=cl.id;
+      list.querySelectorAll('.clip-item').forEach(function(x){ x.classList.remove('selected'); });
+      div.classList.add('selected');
+    });
     var snd=cl.mute||!cl.keep?'Muted':'Audio '+cl.vol+'%';
     if(cl.fadeIn||cl.fadeOut) snd+=' · fade '+cl.fadeIn+'/'+cl.fadeOut+'s';
     var hasCaps=(cl.captions&&cl.captions.length>0)||captions.some(function(c){ return c.t+CAP_DUR>cl.s && c.t<cl.e; });
     div.innerHTML=(cl.thumb?'<img class="thumb" src="'+cl.thumb+'" alt="Clip thumbnail">':'<div class="thumb"></div>')+
       '<div class="clip-main"><b>'+cl.name+'</b><span>'+fmt(cl.s)+' → '+fmt(cl.e)+' · '+Math.round(cl.e-cl.s)+'s</span>'+
       '<div class="tagrow"><span class="tag">'+(cl.ratio||'')+'</span><span class="tag">'+(cl.w||'')+'×'+(cl.h||'')+'</span><span class="tag">'+styleLabel(cl.style)+'</span><span class="tag">'+snd+'</span>'+((cl.voiceAuto||cl.voiceMode==='auto')?'<span class="tag">Voice Auto</span>':(cl.voiceReduction?'<span class="tag">Voice cut '+cl.voiceReduction+'%</span>':''))+(cl.musicName?'<span class="tag">Music</span>':'')+(hasCaps?'<span class="tag">Captions</span>':'')+(cl.hook?'<span class="tag">Hook</span>':'')+(cl.clipTitle?'<span class="tag">Title</span>':'')+'</div>'+
-      '<div style="margin-top:9px;display:flex;gap:6px;flex-wrap:wrap"><button class="small-btn play-cl">Play</button><button class="small-btn export dl-cl">Export</button></div></div>';
+      '<div style="margin-top:9px;display:flex;gap:6px;flex-wrap:wrap"><button class="small-btn play-cl">Play</button><button class="small-btn export dl-cl">Export</button><button class="small-btn del-cl">Delete</button></div></div>';
     div.querySelector('.play-cl').addEventListener('click',function(){
       clipFormat=cl.format; cropX=cl.cropX; cropY=cl.cropY; cropZoom=cl.zoom;
       if(typeof cl.voiceReduction==='number') voiceReduction=cl.voiceReduction;
@@ -1496,6 +1517,7 @@ function renderClips(){
       applyFormat(); setIn(cl.s); setOut(cl.e); video.currentTime=cl.s; video.play();
     });
     div.querySelector('.dl-cl').addEventListener('click',function(){ exportClip(cl); });
+    div.querySelector('.del-cl').addEventListener('click',function(e){ e.stopPropagation(); deleteClip(cl.id); });
     list.appendChild(div);
   });
 }
