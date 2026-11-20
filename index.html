@@ -515,6 +515,16 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
           <button class="btn accent" id="ytDropBtn" type="button">Choose file</button>
         </div>
       </div>
+      <button class="btn primary" id="serverClipBtn" type="button" style="width:100%;margin-top:12px;display:none">Auto clip from link (free server)</button>
+      <p class="hint" id="serverHint" style="display:none;margin:6px 0 0;text-align:center">Free server: ~2,000 min/month</p>
+      <p class="yt-status" id="serverStatus" role="status"></p>
+      <div style="margin-top:12px">
+        <label for="serverUrlInput">Server Worker URL</label>
+        <div class="yt-row">
+          <input type="url" id="serverUrlInput" placeholder="https://clipforge-worker.…workers.dev" autocomplete="off" spellcheck="false">
+          <button class="btn" id="serverUrlSaveBtn" type="button">Save</button>
+        </div>
+      </div>
     </div>
 
     <label class="drop" id="dropZone">
@@ -772,6 +782,12 @@ var VOICE_AUTO_HOLD_MS=420, VOICE_AUTO_POLL_MS=60;
 var musicBuffer=null, musicName='', musicVol=35, musicArrayBuf=null;
 var lastPicked=[], lastDur=0, hasVideo=false, guidesOn=false, safeOn=false;
 var clipLength=30;
+/* Server Auto clip — Cloudflare Worker URL (free server).
+   Paste your deployed Worker URL here OR set it in the Server Worker URL
+   field in the Source step (saved on this device). The placeholder below
+   is replaced once you deploy your own Worker. */
+var SERVER_WORKER_URL_DEFAULT='https://clipforge-worker.YOUR_SUBDOMAIN.workers.dev';
+var serverPollTimer=null;
 var clipStyle='hype', hookText='', clipTitle='', clipSubtitle='';
 var STYLE_LABELS={hype:'Hype',pro:'Pro analysis',meme:'Meme culture'};
 function styleLabel(s){ return STYLE_LABELS[s]||'Hype'; }
@@ -846,6 +862,7 @@ function loadFile(file){
   $('videoEmpty').style.display='none'; $('liveDot').style.display='block';
   if(ytId){ var st=$('ytStatus'); st.className='yt-status ok'; st.textContent='Ready'; $('ytHelp').classList.remove('on'); hideYtFallback(); }
   eagerGraph(); applyAudioPreview(); updateOverlays(); toast('Loaded: '+file.name);
+  if(typeof updateServerClipVisibility==='function') updateServerClipVisibility();
 }
 /* ---------- YOUTUBE LINK ---------- */
 var ytId='';
@@ -873,8 +890,8 @@ function showYtFallback(id){
 }
 function loadYouTube(){
   var raw=$('ytInput').value, id=ytIdFromUrl(raw), st=$('ytStatus');
-  if(!raw.trim()){ st.className='yt-status'; st.textContent=''; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); return; }
-  if(!id){ st.className='yt-status err'; st.textContent='Invalid link'; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); ytId=''; return; }
+  if(!raw.trim()){ st.className='yt-status'; st.textContent=''; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); if(typeof updateServerClipVisibility==='function') updateServerClipVisibility(); return; }
+  if(!id){ st.className='yt-status err'; st.textContent='Invalid link'; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); ytId=''; if(typeof updateServerClipVisibility==='function') updateServerClipVisibility(); return; }
   ytId=id;
   hideYtFallback();
   $('ytOpenBtn2').href='https://www.youtube.com/watch?v='+id;
@@ -884,7 +901,7 @@ function loadYouTube(){
   toast('YouTube video loaded');
   var seq=++ytLoadSeq;
   if(ytPlayer&&ytPlayer.loadVideoById){
-    try{ ytPlayer.loadVideoById(id); return; }catch(e){}
+    try{ ytPlayer.loadVideoById(id); if(typeof updateServerClipVisibility==='function') updateServerClipVisibility(); return; }catch(e){}
   }
   $('ytFrame').src='https://www.youtube.com/embed/'+id+'?rel=0&enablejsapi=1&playsinline=1';
   if(typeof loadYtApi==='function'){
@@ -898,6 +915,7 @@ function loadYouTube(){
       }catch(e){ ytPlayer=null; }
     });
   }
+  if(typeof updateServerClipVisibility==='function') updateServerClipVisibility();
 }
 var ytTimer=null;
 $('ytLoadBtn').addEventListener('click',loadYouTube);
@@ -906,6 +924,166 @@ $('ytInput').addEventListener('paste',function(){ setTimeout(loadYouTube,60); })
 $('ytInput').addEventListener('input',function(){ clearTimeout(ytTimer); var id=ytIdFromUrl(this.value); if(id&&id!==ytId){ ytTimer=setTimeout(loadYouTube,500); } });
 $('ytDropBtn').addEventListener('click',function(){ var dz=$('dropZone'); dz.scrollIntoView({behavior:'smooth',block:'center'}); setTimeout(function(){ fileInput.click(); },350); });
 $('ytFallbackFileBtn').addEventListener('click',function(){ var dz=$('dropZone'); dz.scrollIntoView({behavior:'smooth',block:'center'}); setTimeout(function(){ fileInput.click(); },350); });
+
+/* ---------- SERVER AUTO CLIP (free Worker + GitHub Actions) ---------- */
+function getServerWorkerUrl(){
+  var saved='';
+  try{ saved=(localStorage.getItem('clipforge_server_url')||''); }catch(e){}
+  saved=String(saved).trim().replace(/\/+$/,'');
+  if(saved) return saved;
+  if(SERVER_WORKER_URL_DEFAULT && SERVER_WORKER_URL_DEFAULT.indexOf('YOUR_SUBDOMAIN')===-1) return String(SERVER_WORKER_URL_DEFAULT).trim().replace(/\/+$/,'');
+  return '';
+}
+function clearServerPoll(){ if(serverPollTimer){ clearInterval(serverPollTimer); serverPollTimer=null; } }
+function updateServerClipVisibility(){
+  var btn=$('serverClipBtn'); if(!btn) return;
+  var hint=$('serverHint');
+  var show=!!ytId && !videoFile;
+  btn.style.display=show?'':'none';
+  if(hint) hint.style.display=show?'':'none';
+  if(show){ btn.textContent=getServerWorkerUrl()?'Auto clip from link (free server)':'Server not set up yet'; }
+}
+function setServerStatus(msg,isErr){
+  var el=$('serverStatus'); if(!el) return;
+  el.textContent=msg||'';
+  el.className='yt-status'+(msg?(isErr?' err':' ok'):'');
+}
+function serverClipItems(data){
+  if(!data) return [];
+  var arr=data.clips||data.moments||data.results||data.items||[];
+  if(!arr.length && data.result) arr=data.result.clips||data.result.moments||data.result.results||data.result.items||[];
+  if(!arr.length && data.job && typeof data.job==='object') arr=data.job.clips||data.job.moments||data.job.results||[];
+  return Array.isArray(arr)?arr:[];
+}
+function renderServerMoments(serverClips){
+  var list=$('momentsList'); if(!list) return;
+  if(!serverClips.length){ list.innerHTML='<div class="empty">No peaks found</div>'; return; }
+  list.innerHTML='';
+  serverClips.forEach(function(cl){
+    var div=document.createElement('div'); div.className='moment';
+    var main=document.createElement('div'); main.className='moment-main';
+    var b=document.createElement('b'); b.textContent=cl.name||'Server moment'; main.appendChild(b);
+    var span=document.createElement('span'); span.textContent=fmt(cl.s)+' \u2192 '+fmt(cl.e); main.appendChild(span);
+    var tagrow=document.createElement('div'); tagrow.className='tagrow';
+    var tag=document.createElement('span'); tag.className='tag'; tag.textContent='Server'; tagrow.appendChild(tag);
+    main.appendChild(tagrow);
+    div.appendChild(main);
+    var safeDl='';
+    try{ var parsedDl=new URL(String(cl.downloadUrl||'')); if(parsedDl.protocol==='https:') safeDl=parsedDl.href; }catch(e){}
+    if(safeDl){
+      var a=document.createElement('a'); a.className='small-btn'; a.textContent='Download'; a.href=safeDl; a.setAttribute('download',''); a.target='_blank'; a.rel='noopener'; a.style.textDecoration='none'; a.style.display='inline-flex'; a.style.alignItems='center';
+      div.appendChild(a);
+    }
+    list.appendChild(div);
+  });
+}
+function handleServerFailed(msg){
+  clearServerPoll();
+  var text=String(msg||'Server job failed');
+  setServerStatus(text,true);
+  toast(text);
+  var btn=$('serverClipBtn'); if(btn) btn.disabled=false;
+}
+function handleServerDone(data){
+  clearServerPoll();
+  var items=serverClipItems(data);
+  if(!items.length && data && (data.downloadUrl||data.download_url)){
+    items=[{s:0,e:getClipLength(),downloadUrl:data.downloadUrl||data.download_url,name:'Server clip 1'}];
+  }
+  if(!items.length){
+    handleServerFailed((data&&(data.error||data.message))||'Server finished but no clips were returned');
+    return;
+  }
+  var made=[];
+  items.forEach(function(it,idx){
+    if(!it||typeof it!=='object'){ return; }
+    var s=0;
+    if(typeof it.s==='number') s=it.s; else if(typeof it.start==='number') s=it.start; else if(typeof it.t==='number') s=it.t; else if(typeof it.start_time!=='undefined') s=parseFloat(it.start_time)||0; else if(typeof it.start!=='undefined') s=parseFloat(it.start)||0;
+    var e=s+getClipLength();
+    if(typeof it.e==='number') e=it.e; else if(typeof it.end==='number') e=it.end; else if(typeof it.end_time!=='undefined') e=parseFloat(it.end_time)||e; else if(typeof it.end!=='undefined') e=parseFloat(it.end)||e;
+    if(!(e>s)) e=s+getClipLength();
+    var dlRaw=it.downloadUrl||it.download_url||it.download||it.file_url||it.fileUrl||it.clip_url||it.clipUrl||'';
+    if(!dlRaw && it.url && String(it.url).indexOf('youtube.com/watch')===-1 && String(it.url).indexOf('youtu.be')===-1) dlRaw=it.url;
+    var dl='';
+    try{ var parsedSrv=new URL(String(dlRaw||'')); if(parsedSrv.protocol==='https:') dl=parsedSrv.href; }catch(e){}
+    var name=it.name||it.title||('Server clip '+(idx+1)+' \u00b7 '+fmt(s));
+    made.push({id:Date.now()+Math.random()+idx,server:true,downloadUrl:dl,s:s,e:e,name:name,thumb:'',ratio:'',w:0,h:0,style:clipStyle,keep:true,mute:false,vol:80,fadeIn:0,fadeOut:0,voiceReduction:0,voiceAuto:false,captions:[]});
+  });
+  if(!made.length){ handleServerFailed('Server finished but no clips were returned'); return; }
+  renderServerMoments(made);
+  for(var i=made.length-1;i>=0;i--){ clips.unshift(made[i]); }
+  renderClips();
+  setServerStatus('Server clips ready \u2014 '+made.length+' clip'+(made.length>1?'s':'')+' added to My Clips');
+  toast(made.length+' server clip'+(made.length>1?'s':'')+' ready');
+  var btn=$('serverClipBtn'); if(btn) btn.disabled=false;
+  var clEl=$('clipsList'); if(clEl) clEl.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function pollServerJob(workerUrl,jobId){
+  clearServerPoll();
+  serverPollTimer=setInterval(function(){
+    fetch(workerUrl+'/api/job/'+encodeURIComponent(jobId)).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(data){ return {ok:r.ok,status:r.status,data:data}; });
+    }).then(function(res){
+      var data=res.data||{};
+      if(!res.ok){ handleServerFailed(data.error||data.message||('Server error ('+res.status+')')); return; }
+      var status=String(data.status||data.state||'').toLowerCase();
+      if(status==='done'||status==='completed'||status==='complete'||status==='success'||status==='succeeded'||status==='finished'||data.done===true){ handleServerDone(data); return; }
+      if(status==='failed'||status==='error'||status==='failure'||data.failed===true){ handleServerFailed(data.error||data.message||'Server job failed'); return; }
+      if(!status && serverClipItems(data).length){ handleServerDone(data); return; }
+      if(data.message) setServerStatus(String(data.message));
+      else if(typeof data.progress!=='undefined') setServerStatus('Server par ban raha hai... '+data.progress);
+      else setServerStatus('Server par ban raha hai...');
+    }).catch(function(err){
+      handleServerFailed(err&&err.message?err.message:'Server se connect nahi ho saka');
+    });
+  },20000);
+}
+function startServerClip(){
+  var workerUrl=getServerWorkerUrl();
+  if(!workerUrl){
+    toast('Paste the Worker URL in the settings field first');
+    var inp=$('serverUrlInput'); if(inp){ try{ inp.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} inp.focus(); }
+    return;
+  }
+  if(!ytId){ toast('Load a YouTube link first'); return; }
+  clearServerPoll();
+  var btn=$('serverClipBtn'); if(btn) btn.disabled=true;
+  setServerStatus('Server par ban raha hai...');
+  var rawUrl=(($('ytInput').value||'').trim())||('https://www.youtube.com/watch?v='+ytId);
+  fetch(workerUrl+'/api/clip',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({url:rawUrl,clip_length:getClipLength(),count:3})
+  }).then(function(r){
+    return r.json().catch(function(){ return {}; }).then(function(data){ return {ok:r.ok,status:r.status,data:data}; });
+  }).then(function(res){
+    var data=res.data||{};
+    if(!res.ok){ handleServerFailed(data.error||data.message||('Server error ('+res.status+')')); return; }
+    var jobId=data.id||data.job_id||data.jobId||data.jobID||(data.job&&(typeof data.job==='object'?(data.job.id||data.job.job_id):data.job))||'';
+    if(!jobId){
+      if(serverClipItems(data).length){ handleServerDone(data); return; }
+      handleServerFailed(data.error||data.message||'Server did not return a job id');
+      return;
+    }
+    setServerStatus('Server par ban raha hai...');
+    pollServerJob(workerUrl,jobId);
+  }).catch(function(err){
+    handleServerFailed(err&&err.message?err.message:'Server se connect nahi ho saka');
+  });
+}
+(function initServerUrlField(){
+  try{ var saved=localStorage.getItem('clipforge_server_url'); if(saved) $('serverUrlInput').value=saved; }catch(e){}
+})();
+var serverUrlSaveBtnEl=$('serverUrlSaveBtn');
+if(serverUrlSaveBtnEl) serverUrlSaveBtnEl.addEventListener('click',function(){
+  var v=($('serverUrlInput').value||'').trim();
+  try{ if(v) localStorage.setItem('clipforge_server_url',v); else localStorage.removeItem('clipforge_server_url'); }catch(e){}
+  toast(v?'Server URL saved':'Server URL cleared');
+  updateServerClipVisibility();
+});
+var serverClipBtnEl=$('serverClipBtn');
+if(serverClipBtnEl) serverClipBtnEl.addEventListener('click',startServerClip);
+updateServerClipVisibility();
 
 fileInput.addEventListener('change',function(){loadFile(this.files[0]);});
 $('videoEmpty').addEventListener('click',function(){ fileInput.click(); });
@@ -1556,6 +1734,32 @@ function renderClips(){
       list.querySelectorAll('.clip-item').forEach(function(x){ x.classList.remove('selected'); });
       div.classList.add('selected');
     });
+    if(cl.server){
+      var sThumb;
+      if(cl.thumb){ sThumb=document.createElement('img'); sThumb.className='thumb'; sThumb.src=cl.thumb; sThumb.alt='Clip thumbnail'; }
+      else { sThumb=document.createElement('div'); sThumb.className='thumb'; }
+      div.appendChild(sThumb);
+      var sMain=document.createElement('div'); sMain.className='clip-main';
+      var sB=document.createElement('b'); sB.textContent=cl.name||''; sMain.appendChild(sB);
+      var sSpan=document.createElement('span'); sSpan.textContent=fmt(cl.s)+' \u2192 '+fmt(cl.e)+' \u00b7 '+Math.round(cl.e-cl.s)+'s'; sMain.appendChild(sSpan);
+      var sTagrow=document.createElement('div'); sTagrow.className='tagrow';
+      var sTag=document.createElement('span'); sTag.className='tag'; sTag.textContent='Server clip'; sTagrow.appendChild(sTag);
+      sMain.appendChild(sTagrow);
+      var sBtns=document.createElement('div'); sBtns.style.cssText='margin-top:9px;display:flex;gap:6px;flex-wrap:wrap';
+      var sDlUrl='';
+      try{ var sParsed=new URL(String(cl.downloadUrl||'')); if(sParsed.protocol==='https:') sDlUrl=sParsed.href; }catch(e){}
+      if(sDlUrl){
+        var sA=document.createElement('a'); sA.className='small-btn dl-server'; sA.style.cssText='text-decoration:none;display:inline-flex;align-items:center'; sA.textContent='Download'; sA.href=sDlUrl; sA.setAttribute('download',''); sA.target='_blank'; sA.rel='noopener';
+        sBtns.appendChild(sA);
+      }
+      var sDel=document.createElement('button'); sDel.className='small-btn del-cl'; sDel.type='button'; sDel.textContent='Delete';
+      sDel.addEventListener('click',function(e){ e.stopPropagation(); deleteClip(cl.id); });
+      sBtns.appendChild(sDel);
+      sMain.appendChild(sBtns);
+      div.appendChild(sMain);
+      list.appendChild(div);
+      return;
+    }
     var snd=cl.mute||!cl.keep?'Muted':'Audio '+cl.vol+'%';
     if(cl.fadeIn||cl.fadeOut) snd+=' · fade '+cl.fadeIn+'/'+cl.fadeOut+'s';
     var hasCaps=(cl.captions&&cl.captions.length>0)||captions.some(function(c){ return c.t+CAP_DUR>cl.s && c.t<cl.e; });
