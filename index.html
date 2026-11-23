@@ -578,9 +578,15 @@ select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--lin
   .step6 span{font-size:9.5px;margin-top:1px}
   .timeline-card .card-h,.toolkit-card .card-h{padding:7px 14px 0}
   .timeline-card .card-h h2,.toolkit-card .card-h h2{font-size:16px}
-  .wrap{max-width:none;width:100%;flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:8px;padding:6px 20px 8px}
+  .wrap{max-width:none;width:100%;flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:6px 20px 8px}
   .wrap>*{min-height:0}
-  .mainrow{flex:44 1 0;min-height:0;display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:12px}
+  .mainrow{flex:44 1 0;min-height:0;display:flex;flex-direction:row;gap:12px}
+  .mainrow.has-splitter{gap:0}
+  .col-left{flex:1.45 1 0}
+  .col-right{flex:1 1 0}
+  .colsplit{flex:0 0 12px;cursor:col-resize;position:relative;z-index:8;touch-action:none}
+  .colsplit::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;transform:translateX(-50%);background:transparent;border-radius:2px;transition:background .15s ease}
+  .colsplit:hover::after,.colsplit.dragging::after{background:var(--accent)}
   .col{display:flex;flex-direction:column;gap:12px;overflow-y:auto;overflow-x:hidden;min-height:0;min-width:0;padding:2px;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
   .col::-webkit-scrollbar{width:8px}
   .col::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:99px}
@@ -722,6 +728,30 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   .wrap[data-view="edit"] .preview-card{margin-top:0;border-radius:14px}
   .wrap[data-view="source"] .source-card{border-bottom:1px solid var(--line);border-radius:14px}
 }
+
+/* ---------- DESKTOP PANEL LAYOUT: drag to move / dock, drag edges to resize ---------- */
+.panel-grip,.resize-edge-b,.resize-edge-t,.layout-btn,.colsplit{display:none}
+@media(min-width:1024px){
+  .stepbar{overflow:visible}
+  .layout-btn{display:inline-flex;margin-left:auto;align-self:center}
+  .colsplit{display:block}
+  .panel-grip{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;min-height:26px;padding:0;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--faint);cursor:grab;flex-shrink:0;touch-action:none}
+  .panel-grip:hover{color:var(--accent-ink);border-color:var(--line-strong)}
+  .panel-grip:active{cursor:grabbing}
+  .panel-grip .ic{width:15px;height:15px}
+  .card{position:relative}
+  .resize-edge-b{display:block;position:absolute;left:10px;right:10px;bottom:0;height:12px;cursor:ns-resize;z-index:7;touch-action:none}
+  .resize-edge-b::after{content:"";position:absolute;left:0;right:0;bottom:3px;height:2px;border-radius:2px;background:transparent;transition:background .15s ease}
+  .resize-edge-b:hover::after{background:var(--accent)}
+  .resize-edge-t{display:block;position:absolute;left:10px;right:10px;top:0;height:12px;cursor:ns-resize;z-index:7;touch-action:none}
+  .resize-edge-t::after{content:"";position:absolute;left:0;right:0;top:3px;height:2px;border-radius:2px;background:transparent;transition:background .15s ease}
+  .resize-edge-t:hover::after{background:var(--accent)}
+  .panel-sized{overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+  .unit-dragging{opacity:.45}
+  body.layout-dragging,body.layout-dragging *{cursor:grabbing !important;user-select:none !important}
+  body.layout-resizing-y,body.layout-resizing-y *{cursor:ns-resize !important;user-select:none !important}
+  body.layout-resizing-x,body.layout-resizing-x *{cursor:col-resize !important;user-select:none !important}
+}
 </style>
 </head>
 <body>
@@ -741,6 +771,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   <button class="step6" type="button" data-step="4"><b>04 / REFRAME</b></button>
   <button class="step6" type="button" data-step="5"><b>05 / TEMPLATE</b></button>
   <button class="step6" type="button" data-step="6"><b>06 / EXPORT</b></button>
+  <button class="btn icon-btn icon-only has-tip tip-below layout-btn" id="layoutResetBtn" type="button" data-tip="Reset layout" aria-label="Reset layout"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10v6H4zM14 4h4.5A1.5 1.5 0 0 1 20 5.5V10h-6zM4 14h6v6H5.5A1.5 1.5 0 0 1 4 18.5zM14 14h6v4.5a1.5 1.5 0 0 1-1.5 1.5H14z"/></svg></button>
   <div class="step-time mono"><span id="stepElapsed">00:00</span> / <span id="stepTotal">00:00</span></div>
 </nav>
 
@@ -752,16 +783,16 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
     <div class="card-h prog-h">
       <div>
         <h2>Program / SOURCE_01</h2>
-        <p class="card-sub src-label"><span class="src-dot">\u25cf</span> <span id="srcName">No source loaded</span></p>
+        <p class="card-sub src-label"><span class="src-dot">●</span> <span id="srcName">No source loaded</span></p>
       </div>
       <label class="speed-wrap">Speed
         <select id="speedSel" aria-label="Playback speed">
-          <option value="0.5">0.5\u00d7</option>
-          <option value="0.75">0.75\u00d7</option>
-          <option value="1" selected>1\u00d7</option>
-          <option value="1.25">1.25\u00d7</option>
-          <option value="1.5">1.5\u00d7</option>
-          <option value="2">2\u00d7</option>
+          <option value="0.5">0.5×</option>
+          <option value="0.75">0.75×</option>
+          <option value="1" selected>1×</option>
+          <option value="1.25">1.25×</option>
+          <option value="1.5">1.5×</option>
+          <option value="2">2×</option>
         </select>
       </label>
     </div>
@@ -855,9 +886,8 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
       <button class="btn primary" id="serverClipBtn" type="button" style="width:100%;margin-top:12px;display:none">Auto clip from link (free server)</button>
       <p class="yt-status" id="serverStatus" role="status"></p>
       <div style="margin-top:12px">
-        <label for="serverUrlInput">Server Worker URL</label>
         <div class="yt-row">
-          <input type="url" id="serverUrlInput" placeholder="https://clipforge-worker.…workers.dev" autocomplete="off" spellcheck="false">
+          <input type="url" id="serverUrlInput" aria-label="Server Worker URL" autocomplete="off" spellcheck="false">
           <button class="btn" id="serverUrlSaveBtn" type="button">Save</button>
         </div>
       </div>
@@ -1248,7 +1278,6 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
       </div>
       <span class="badge" id="clipCount">0 ready</span>
     </div>
-    <p class="hint" style="margin:10px 20px 0">Clip select karein, Delete key se delete karein</p>
     <div class="list" id="clipsList"><div class="empty">No clips yet</div></div>
   </section>
 </main>
@@ -3231,7 +3260,7 @@ function runThumbQueue(){
 var filmSig='', filmToken=0, tlSig='';
 function renderFilmstrip(){
   var lane=$('filmLane'); if(!lane) return;
-  if(!hasVideo||!video.duration){ if(filmSig!=='empty'){ filmSig='empty'; lane.innerHTML='<div class="film-ph">Load a video</div>'; } return; }
+  if(!hasVideo||!video.duration){ if(filmSig!=='empty'){ filmSig='empty'; lane.innerHTML=''; } return; }
   var sig=inPoint.toFixed(1)+'|'+outPoint.toFixed(1)+'|'+clipFormat;
   if(sig===filmSig) return; filmSig=sig;
   var token=++filmToken, N=8, span=outPoint-inPoint;
@@ -3282,12 +3311,12 @@ function renderCapTrack(){
     });
     lane.appendChild(d);
   });
-  if(!any){ var e=document.createElement('div'); e.className='lane-empty'; e.textContent='No captions in this window'; lane.appendChild(e); }
+  if(!any){ var e=document.createElement('div'); e.className='lane-empty'; e.textContent=''; lane.appendChild(e); }
 }
 function renderKfTrack(){
   var lane=$('kfLane'); if(!lane) return; lane.innerHTML='';
   var len=Math.max(0.1,outPoint-inPoint);
-  if(!cropKeyframes.length){ var e=document.createElement('div'); e.className='lane-empty'; e.textContent='Click to add a keyframe'; lane.appendChild(e); }
+  if(!cropKeyframes.length){ var e=document.createElement('div'); e.className='lane-empty'; e.textContent=''; lane.appendChild(e); }
   cropKeyframes.forEach(function(k){
     if(k.t<inPoint||k.t>outPoint) return;
     var d=document.createElement('span'); d.className='kf-dot'; d.style.left=((k.t-inPoint)/len*100)+'%';
@@ -3400,6 +3429,189 @@ renderTimeline(true);
   var jumpTarget={program:'secProgram',trim:'secTimeline',sound:'secInspector',captions:'secInspector',motion:'secMotion',easing:'secEase',style:'secInspector'};
   document.querySelectorAll('.jump-pill').forEach(function(pill){
     pill.addEventListener('click',function(){ var j=pill.getAttribute('data-jump'); if(jumpView[j]) go(jumpView[j],jumpTarget[j]); });
+  });
+})();
+
+/* ---------- DESKTOP PANEL LAYOUT: drag panels to move / dock, drag edges to resize, reset ---------- */
+(function(){
+  var mq=window.matchMedia('(min-width:1024px)');
+  var wrap=document.querySelector('.wrap');
+  var mainrow=document.querySelector('.mainrow');
+  var colL=document.querySelector('.col-left');
+  var colR=document.querySelector('.col-right');
+  if(!wrap||!mainrow||!colL||!colR) return;
+  function byId(id){ return document.getElementById(id); }
+  function unit(els){ els=(els||[]).filter(Boolean); return els.length?{first:els[0],els:els}:null; }
+
+  var inspEls=[byId('secInspector'),document.querySelector('.insp-tabs')];
+  document.querySelectorAll('.insp-panel').forEach(function(p){ inspEls.push(p); });
+
+  var leftUnits=[unit([byId('secProgram')]),unit([byId('secCapture')]),unit([document.querySelector('.format-card')]),unit([document.querySelector('.live-card')])].filter(Boolean);
+  var rightUnits=[unit([byId('secMoments')]),unit(inspEls),unit([byId('secExport')])].filter(Boolean);
+  var timeline=byId('secTimeline'), toolkit=byId('secToolkit'), clips=document.querySelector('.clips-strip');
+  var bandUnits=[unit([mainrow]),unit([timeline]),unit([toolkit]),unit([clips])].filter(Boolean);
+  var allUnits=leftUnits.concat(rightUnits,bandUnits);
+
+  function findUnit(el){
+    for(var i=0;i<allUnits.length;i++){ if(allUnits[i].els.indexOf(el)>-1) return allUnits[i]; }
+    return null;
+  }
+  function unitsIn(container){
+    var res=[],seen=[];
+    Array.prototype.forEach.call(container.children,function(ch){
+      var u=findUnit(ch);
+      if(u&&seen.indexOf(u)<0){ seen.push(u); res.push(u); }
+    });
+    return res;
+  }
+  function unitRect(u){
+    var top=Infinity,bottom=-Infinity;
+    u.els.forEach(function(el){
+      var r=el.getBoundingClientRect();
+      if(r.height>0){ if(r.top<top)top=r.top; if(r.bottom>bottom)bottom=r.bottom; }
+    });
+    if(top===Infinity){ var r0=u.first.getBoundingClientRect(); top=r0.top; bottom=r0.bottom; }
+    return {top:top,bottom:bottom};
+  }
+  function insertUnit(u,container,beforeEl){
+    u.els.forEach(function(el){ if(beforeEl) container.insertBefore(el,beforeEl); else container.appendChild(el); });
+  }
+
+  /* grips, resize edges, column splitter */
+  var GRIP='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="5.5" r="1.7"/><circle cx="15" cy="5.5" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18.5" r="1.7"/><circle cx="15" cy="18.5" r="1.7"/></svg>';
+  function addGrip(u){
+    var h=u.first.querySelector('.card-h')||u.first.querySelector('.fmt-bar');
+    if(!h) return;
+    var b=document.createElement('button');
+    b.type='button'; b.className='panel-grip'; b.title='Drag to move'; b.setAttribute('aria-label','Drag to move panel');
+    b.innerHTML=GRIP;
+    h.insertBefore(b,h.firstChild);
+  }
+  function addEdge(el,cls){
+    var e=document.createElement('div'); e.className=cls; e.setAttribute('aria-hidden','true'); el.appendChild(e);
+  }
+  leftUnits.concat(rightUnits).forEach(function(u){
+    addGrip(u);
+    u.els.forEach(function(el){ if(!el.classList.contains('insp-tabs')) addEdge(el,'resize-edge-b'); });
+  });
+  bandUnits.forEach(function(u){ if(u.first!==mainrow) addGrip(u); });
+  [timeline,toolkit,clips].forEach(function(el){ if(el) addEdge(el,'resize-edge-t'); });
+  var split=document.createElement('div');
+  split.className='colsplit'; split.setAttribute('aria-hidden','true');
+  mainrow.insertBefore(split,colR);
+  mainrow.classList.add('has-splitter');
+
+  /* drag machinery (pointer based, desktop only) */
+  var drag=null;
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+  function growOf(el){ return parseFloat(window.getComputedStyle(el).flexGrow)||0; }
+  function inRect(el,e){
+    var r=el.getBoundingClientRect();
+    return e.clientX>=r.left-14&&e.clientX<=r.right+14&&e.clientY>=r.top-10&&e.clientY<=r.bottom+10;
+  }
+  function moveAmong(u,container,units,y){
+    var others=units.filter(function(x){ return x!==u; });
+    for(var i=0;i<others.length;i++){
+      var r=unitRect(others[i]);
+      if(y<(r.top+r.bottom)/2){ insertUnit(u,container,others[i].first); return; }
+    }
+    insertUnit(u,container,null);
+  }
+
+  document.addEventListener('pointerdown',function(e){
+    if(!mq.matches||e.button!==0||!e.target.closest) return;
+    var sp=e.target.closest('.colsplit');
+    var edgeB=e.target.closest('.resize-edge-b');
+    var edgeT=e.target.closest('.resize-edge-t');
+    var grip=e.target.closest('.panel-grip');
+    if(sp){
+      drag={mode:'split'}; sp.classList.add('dragging');
+      document.body.classList.add('layout-resizing-x'); e.preventDefault(); return;
+    }
+    if(edgeB){
+      var elB=edgeB.parentElement;
+      drag={mode:'sizeB',el:elB,y:e.clientY,h:elB.getBoundingClientRect().height};
+      document.body.classList.add('layout-resizing-y'); e.preventDefault(); return;
+    }
+    if(edgeT){
+      var elT=edgeT.parentElement;
+      var units=unitsIn(wrap), idx=-1, i;
+      for(i=0;i<units.length;i++){ if(units[i].els.indexOf(elT)>-1){ idx=i; break; } }
+      var other=null;
+      if(idx>0) other=units[idx-1].first;
+      else if(idx===0&&units.length>1) other=units[1].first;
+      if(!other) return;
+      drag={mode:'sizeT',el:elT,other:other,y:e.clientY,
+        hEl:elT.getBoundingClientRect().height,hOther:other.getBoundingClientRect().height,
+        gEl:growOf(elT),gOther:growOf(other)};
+      document.body.classList.add('layout-resizing-y'); e.preventDefault(); return;
+    }
+    if(grip){
+      var sec=grip.closest('section');
+      var u=sec?findUnit(sec):null;
+      if(!u) return;
+      drag={mode:'move',unit:u,scope:bandUnits.indexOf(u)>-1?'band':'col'};
+      u.els.forEach(function(el){ el.classList.add('unit-dragging'); });
+      document.body.classList.add('layout-dragging');
+      e.preventDefault();
+    }
+  });
+
+  document.addEventListener('pointermove',function(e){
+    if(!drag) return;
+    if(drag.mode==='split'){
+      var r=mainrow.getBoundingClientRect();
+      var f=clamp((e.clientX-r.left)/r.width,0.2,0.8);
+      colL.style.flexGrow=(f*2.45).toFixed(3);
+      colR.style.flexGrow=((1-f)*2.45).toFixed(3);
+      return;
+    }
+    if(drag.mode==='sizeB'){
+      drag.el.style.height=clamp(drag.h+(e.clientY-drag.y),110,1500)+'px';
+      drag.el.classList.add('panel-sized');
+      return;
+    }
+    if(drag.mode==='sizeT'){
+      var nd=clamp(-(e.clientY-drag.y),-(drag.hEl-90),drag.hOther-90);
+      var hEl=drag.hEl+nd, hOther=drag.hOther-nd;
+      var sum=drag.gEl+drag.gOther, tot=drag.hEl+drag.hOther;
+      if(tot>0){
+        drag.el.style.flexGrow=(sum*hEl/tot).toFixed(3);
+        drag.other.style.flexGrow=(sum*hOther/tot).toFixed(3);
+      }
+      return;
+    }
+    if(drag.mode==='move'){
+      if(drag.scope==='col'){
+        var col=inRect(colL,e)?colL:(inRect(colR,e)?colR:null);
+        if(!col) return;
+        moveAmong(drag.unit,col,unitsIn(col),e.clientY);
+      }else{
+        moveAmong(drag.unit,wrap,unitsIn(wrap),e.clientY);
+      }
+    }
+  });
+
+  function endDrag(){
+    if(!drag) return;
+    if(drag.unit) drag.unit.els.forEach(function(el){ el.classList.remove('unit-dragging'); });
+    split.classList.remove('dragging');
+    drag=null;
+    document.body.classList.remove('layout-dragging');
+    document.body.classList.remove('layout-resizing-y');
+    document.body.classList.remove('layout-resizing-x');
+  }
+  document.addEventListener('pointerup',endDrag);
+  document.addEventListener('pointercancel',endDrag);
+
+  /* reset to the default layout */
+  var resetBtn=byId('layoutResetBtn');
+  if(resetBtn) resetBtn.addEventListener('click',function(){
+    bandUnits.forEach(function(u){ wrap.appendChild(u.first); u.first.style.flexGrow=''; });
+    leftUnits.forEach(function(u){ insertUnit(u,colL,null); });
+    rightUnits.forEach(function(u){ insertUnit(u,colR,null); });
+    colL.style.flexGrow=''; colR.style.flexGrow='';
+    document.querySelectorAll('.panel-sized').forEach(function(el){ el.classList.remove('panel-sized'); el.style.height=''; });
   });
 })();
 </script>
