@@ -727,6 +727,8 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   /* Cards that were visually joined in the long page stand alone per view */
   .wrap[data-view="edit"] .preview-card{margin-top:0;border-radius:14px}
   .wrap[data-view="source"] .source-card{border-bottom:1px solid var(--line);border-radius:14px}
+  /* Stage toggles sit at the top of the stage so the tab bar never covers them */
+  .guides-toggle{bottom:auto;top:46px}
 }
 
 /* ---------- DESKTOP PANEL LAYOUT: drag to move / dock, drag edges to resize ---------- */
@@ -752,6 +754,118 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   body.layout-resizing-y,body.layout-resizing-y *{cursor:ns-resize !important;user-select:none !important}
   body.layout-resizing-x,body.layout-resizing-x *{cursor:col-resize !important;user-select:none !important}
 }
+
+/* ---------- SCREENS (desktop): one clean full screen per step, no inner scroll ---------- */
+@media(min-width:1024px){
+  .live-step b{color:var(--accent)}
+  .wrap{display:grid;gap:12px;padding:10px 20px 12px;overflow:hidden}
+  .mainrow{display:contents}
+  .col{display:contents}
+  /* every panel starts hidden; the active screen shows only its own panels */
+  .wrap[data-screen] #secProgram,.wrap[data-screen] #secCapture,.wrap[data-screen] #secMoments,.wrap[data-screen] #secInspector,.wrap[data-screen] #secExport,.wrap[data-screen] #secTimeline,.wrap[data-screen] #secToolkit,.wrap[data-screen] .format-card,.wrap[data-screen] .live-card,.wrap[data-screen] .insp-tabs,.wrap[data-screen] .insp-panel,.wrap[data-screen] .clips-strip{display:none}
+
+  /* 01 / CAPTURE — link & file source on its own screen */
+  .wrap[data-screen="capture"]{grid-template-areas:"main";grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+  .wrap[data-screen="capture"] #secCapture{display:block;grid-area:main;justify-self:center;align-self:center;width:min(780px,100%);max-height:100%;overflow:hidden}
+
+  /* LIVE — stream load on its own screen */
+  .wrap[data-screen="live"]{grid-template-areas:"main";grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+  .wrap[data-screen="live"] .live-card{display:flex;flex-direction:column;grid-area:main;height:100%;min-height:0;overflow:hidden}
+  .wrap[data-screen="live"] .live-card.live-open .live-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+  .wrap[data-screen="live"] .live-grid{flex:1 1 auto;min-height:0;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)}
+  .wrap[data-screen="live"] .live-grid>div:first-child{display:flex;flex-direction:column;min-height:0}
+  .wrap[data-screen="live"] .live-player{flex:1 1 auto;min-height:0;height:auto;aspect-ratio:auto}
+  .wrap[data-screen="live"] .live-side{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+
+  /* 02 / FIND THE CUT — preview, moments and timeline */
+  .wrap[data-screen="cut"]{grid-template-areas:"program moments" "timeline timeline";grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) 236px}
+  .wrap[data-screen="cut"] #secProgram{display:flex;flex-direction:column;grid-area:program;min-height:0;overflow:hidden}
+  .wrap[data-screen="cut"] .preview-card .stage-wrap{flex:1 1 auto;min-height:0;display:grid;place-items:center}
+  .wrap[data-screen="cut"] .stage{height:100%;width:auto;max-width:100%}
+  .wrap[data-screen="cut"] #secMoments{display:flex;flex-direction:column;grid-area:moments;min-height:0;overflow:hidden}
+  .wrap[data-screen="cut"] #momentsList{overflow:hidden}
+  .wrap[data-screen="cut"] #secTimeline{display:flex;flex-direction:column;grid-area:timeline;min-height:0;overflow:hidden}
+  .wrap[data-screen="cut"] .tl-body{flex:1 1 auto;min-height:0}
+  .wrap[data-screen="cut"] .tl-side{overflow:hidden;display:grid;grid-template-columns:1.05fr .95fr;gap:4px 14px;align-content:start}
+  .wrap[data-screen="cut"] .tl-side .sec{grid-row:1 / span 2}
+  .wrap[data-screen="cut"] .tl-side .pill-row{display:none}
+  .wrap[data-screen="cut"] .tl-side input[type=range]{height:20px}
+
+  /* 03 / CAPTIONS — captions and sound */
+  .wrap[data-screen="captions"]{grid-template-areas:"sound captions";grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+  .wrap[data-screen="captions"] .insp-panel[data-panel="sound"]{display:block;grid-area:sound;height:100%;overflow:hidden}
+  .wrap[data-screen="captions"] .insp-panel[data-panel="captions"]{display:block;grid-area:captions;height:100%;overflow:hidden}
+
+  /* 04 / REFRAME — composition and inspector */
+  .wrap[data-screen="reframe"]{grid-template-areas:"format inspector";grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+  .wrap[data-screen="reframe"] .format-card{display:block;grid-area:format;height:100%;overflow:hidden}
+  .wrap[data-screen="reframe"] .format-card .fmt-pop{display:block !important}
+  .wrap[data-screen="reframe"] .format-card .fmt-options{grid-template-columns:repeat(3,1fr)}
+  .wrap[data-screen="reframe"] #secInspector{display:block;grid-area:inspector;height:100%;overflow:hidden}
+
+  /* 05 / TEMPLATE — clip style and text overlay */
+  .wrap[data-screen="template"]{grid-template-areas:"style text";grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+  .wrap[data-screen="template"] .insp-panel[data-panel="style"]{display:block;grid-area:style;height:100%;overflow:hidden}
+  .wrap[data-screen="template"] .insp-panel[data-panel="text"]{display:block;grid-area:text;height:100%;overflow:hidden}
+
+  /* 06 / EXPORT — output preview, my clips and toolkit */
+  .wrap[data-screen="export"]{grid-template-areas:"export clips" "export toolkit";grid-template-columns:400px minmax(0,1fr);grid-template-rows:minmax(0,1fr) 178px}
+  .wrap[data-screen="export"] #secExport{display:block;grid-area:export;height:100%;overflow:hidden}
+  .wrap[data-screen="export"] .clips-strip{display:flex;flex-direction:column;grid-area:clips;height:100%;min-height:0;overflow:hidden}
+  .wrap[data-screen="export"] .clips-strip .list{flex:1 1 auto;flex-direction:row;flex-wrap:wrap;align-content:flex-start;overflow:hidden}
+  .wrap[data-screen="export"] #secToolkit{display:flex;flex-direction:column;grid-area:toolkit;height:100%;min-height:0;overflow:hidden}
+  .wrap[data-screen="export"] .tk-grid{overflow:hidden;align-content:start}
+
+  /* Panel move/resize inside a screen: grip swaps panels, edges resize the grid */
+  .wrap .card-h>div{flex:1 1 auto;min-width:0}
+  .wrap[data-screen="cut"] .tl-body{grid-template-columns:minmax(0,1fr) 432px}
+  .wrap[data-screen="cut"] .tl-side .sec-t{flex-wrap:nowrap}
+  .wrap[data-screen="reframe"] #secInspector .pad{gap:8px}
+  .wrap[data-screen="reframe"] #secInspector .sec{margin-top:10px;padding-top:10px}
+  .wrap[data-screen="reframe"] #easeSvg{width:150px}
+  .video-empty{padding:12px}
+  .video-empty b{font-size:16px}
+  .video-empty .btn{min-height:42px;padding:9px 14px;font-size:13.5px;white-space:normal}
+  /* Cut screen: stage gets the full card height, controls sit in a side column */
+  .wrap[data-screen="cut"] #secProgram{display:grid;grid-template-areas:"h h" "stage cap" "stage meta" "stage controls";grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:auto auto auto minmax(0,1fr)}
+  .wrap[data-screen="cut"] .preview-card .card-h{grid-area:h}
+  .wrap[data-screen="cut"] .preview-card .stage-wrap{grid-area:stage;margin:12px 0 12px 16px}
+  .wrap[data-screen="cut"] .preview-card .caption-bar{grid-area:cap;margin:12px 16px 0 4px}
+  .wrap[data-screen="cut"] .preview-card .prog-meta{grid-area:meta;padding:8px 16px 0 4px}
+  .wrap[data-screen="cut"] .preview-card .controls{grid-area:controls;padding:12px 16px 16px 4px}
+  .resize-edge-r{display:block;position:absolute;top:10px;bottom:10px;right:0;width:12px;cursor:ew-resize;z-index:7;touch-action:none}
+  .resize-edge-r::after{content:"";position:absolute;top:0;bottom:0;right:3px;width:2px;border-radius:2px;background:transparent;transition:background .15s ease}
+  .resize-edge-r:hover::after{background:var(--accent)}
+  body.layout-resizing-x,body.layout-resizing-x *{cursor:ew-resize !important;user-select:none !important}
+}
+
+/* ---------- SCREENS (mobile/tablet): step bar switches the same screens, stacked ---------- */
+@media(max-width:1023px){
+  .resize-edge-r{display:none}
+  .wrap section.card{overflow-x:clip}
+  .wrap .yt-row{min-width:0}
+  .wrap .yt-row input{flex:1 1 0%;min-width:0}
+  .wrap .yt-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:stretch}
+  .wrap .yt-box{min-width:0}
+  .wrap>*,.wrap section,.wrap .card-h,.wrap .yt-box,.wrap .yt-row,.wrap .drop{max-width:100%}
+  .wrap section{min-width:0}
+  .wrap[data-screen] #secProgram,.wrap[data-screen] #secCapture,.wrap[data-screen] #secMoments,.wrap[data-screen] #secInspector,.wrap[data-screen] #secExport,.wrap[data-screen] #secTimeline,.wrap[data-screen] #secToolkit,.wrap[data-screen] .format-card,.wrap[data-screen] .live-card,.wrap[data-screen] .insp-tabs,.wrap[data-screen] .insp-panel,.wrap[data-screen] .clips-strip{display:none}
+  .wrap[data-screen="capture"] #secCapture{display:block}
+  .wrap[data-screen="live"] .live-card{display:block}
+  .wrap[data-screen="cut"] #secProgram{display:block}
+  .wrap[data-screen="cut"] #secMoments{display:block;order:5}
+  .wrap[data-screen="cut"] #secTimeline{display:block;order:6}
+  .wrap[data-screen="captions"] .insp-panel[data-panel="sound"]{display:block}
+  .wrap[data-screen="captions"] .insp-panel[data-panel="captions"]{display:block}
+  .wrap[data-screen="reframe"] .format-card{display:block}
+  .wrap[data-screen="reframe"] .format-card .fmt-pop{display:block !important}
+  .wrap[data-screen="reframe"] #secInspector{display:block}
+  .wrap[data-screen="template"] .insp-panel[data-panel="style"]{display:block}
+  .wrap[data-screen="template"] .insp-panel[data-panel="text"]{display:block}
+  .wrap[data-screen="export"] #secExport{display:block}
+  .wrap[data-screen="export"] .clips-strip{display:block}
+  .wrap[data-screen="export"] #secToolkit{display:block}
+}
 </style>
 </head>
 <body>
@@ -771,11 +885,12 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   <button class="step6" type="button" data-step="4"><b>04 / REFRAME</b></button>
   <button class="step6" type="button" data-step="5"><b>05 / TEMPLATE</b></button>
   <button class="step6" type="button" data-step="6"><b>06 / EXPORT</b></button>
+  <button class="step6 live-step" id="liveStepBtn" type="button"><b>● LIVE</b><span>Stream load</span></button>
   <button class="btn icon-btn icon-only has-tip tip-below layout-btn" id="layoutResetBtn" type="button" data-tip="Reset layout" aria-label="Reset layout"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10v6H4zM14 4h4.5A1.5 1.5 0 0 1 20 5.5V10h-6zM4 14h6v6H5.5A1.5 1.5 0 0 1 4 18.5zM14 14h6v4.5a1.5 1.5 0 0 1-1.5 1.5H14z"/></svg></button>
   <div class="step-time mono"><span id="stepElapsed">00:00</span> / <span id="stepTotal">00:00</span></div>
 </nav>
 
-<main class="wrap" data-view="edit">
+<main class="wrap" data-view="edit" data-screen="capture">
   <div class="mainrow">
   <div class="col col-left">
   <!-- PREVIEW -->
@@ -831,7 +946,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
       <input type="text" id="captionBarInput" placeholder="TYPE THE HOOK / CAPTION" autocomplete="off" aria-label="Clip caption">
     </div>
     <div class="prog-meta">
-      <span class="src-range mono" id="srcRangeLabel">SOURCE 00:00\u201300:30 SEC</span>
+      <span class="src-range mono" id="srcRangeLabel">SOURCE 00:00–00:30 SEC</span>
     </div>
     <div class="controls">
       <div class="time-row"><span id="curTime">00:00</span><span id="durTime">00:00</span></div>
@@ -886,6 +1001,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
       <button class="btn primary" id="serverClipBtn" type="button" style="width:100%;margin-top:12px;display:none">Auto clip from link (free server)</button>
       <p class="yt-status" id="serverStatus" role="status"></p>
       <div style="margin-top:12px">
+        <label for="serverUrlInput">Server Worker URL</label>
         <div class="yt-row">
           <input type="url" id="serverUrlInput" aria-label="Server Worker URL" autocomplete="off" spellcheck="false">
           <button class="btn" id="serverUrlSaveBtn" type="button">Save</button>
@@ -1021,7 +1137,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
           <label class="fld-label" for="inspCapInput">Caption</label>
           <input type="text" class="text-input" id="inspCapInput" placeholder="Clip caption / hook line" autocomplete="off">
         </div>
-        <div class="ctl-row"><label>Font \u00b7 Anton</label><input type="range" id="capSizeSlider" min="18" max="64" step="1" value="34" aria-label="Caption size"><output id="capSizeVal">34 PX</output></div>
+        <div class="ctl-row"><label>Font · Anton</label><input type="range" id="capSizeSlider" min="18" max="64" step="1" value="34" aria-label="Caption size"><output id="capSizeVal">34 PX</output></div>
         <div class="sec" id="secMotion" style="margin-top:6px">
           <div class="sec-t">Motion crop <span id="cropModeLabel">Auto</span></div>
           <p class="hint" id="motionFmtLabel" style="margin:0 0 8px">16:9 / SAFE AREA</p>
@@ -1185,7 +1301,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   <section class="card timeline-card ord-timeline" id="secTimeline">
     <div class="card-h tl-h">
       <div><h2>Sequence / SHORT_01</h2></div>
-      <span class="badge" id="tlSnap">SNAP \u2022 30 SEC</span>
+      <span class="badge" id="tlSnap">SNAP • 30 SEC</span>
     </div>
     <div class="tl-body">
       <div class="tl-tracks" id="tlTracks">
@@ -3432,170 +3548,134 @@ renderTimeline(true);
   });
 })();
 
-/* ---------- DESKTOP PANEL LAYOUT: drag panels to move / dock, drag edges to resize, reset ---------- */
+</script>
+<script>
+/* ---------- SCREENS: step bar switches full-screen views (desktop) ---------- */
+(function(){
+  var wrap=document.querySelector('.wrap'); if(!wrap) return;
+  var screens={'1':'capture','2':'cut','3':'captions','4':'reframe','5':'template','6':'export'};
+  function setScreen(name){
+    wrap.setAttribute('data-screen',name);
+    document.querySelectorAll('.step6').forEach(function(b){
+      var s=screens[b.getAttribute('data-step')];
+      if(s) b.classList.toggle('active',s===name);
+    });
+    var lb=document.getElementById('liveStepBtn');
+    if(lb) lb.classList.toggle('active',name==='live');
+    var screenTabs={capture:'source',cut:'edit',captions:'tools',reframe:'edit',template:'tools',export:'clips',live:'source'};
+    document.querySelectorAll('.mtab').forEach(function(t){
+      var on=t.getAttribute('data-view')===screenTabs[name];
+      t.classList.toggle('active',on); t.setAttribute('aria-selected',on?'true':'false');
+    });
+  }
+  document.querySelectorAll('.step6').forEach(function(b){
+    b.addEventListener('click',function(){ var s=screens[b.getAttribute('data-step')]; if(s) setScreen(s); });
+  });
+  var lb=document.getElementById('liveStepBtn');
+  if(lb) lb.addEventListener('click',function(){ setScreen('live'); });
+  var viewScreens={edit:'cut',source:'capture',clips:'export',tools:'template'};
+  document.querySelectorAll('.mtab').forEach(function(t){
+    t.addEventListener('click',function(){ var s=viewScreens[t.getAttribute('data-view')]; if(s) setScreen(s); });
+  });
+  setScreen('capture');
+})();
+</script>
+<script>
+/* ---------- SCREENS PANEL LAYOUT: drag grip to swap panels, drag edges to resize, reset ---------- */
 (function(){
   var mq=window.matchMedia('(min-width:1024px)');
-  var wrap=document.querySelector('.wrap');
-  var mainrow=document.querySelector('.mainrow');
-  var colL=document.querySelector('.col-left');
-  var colR=document.querySelector('.col-right');
-  if(!wrap||!mainrow||!colL||!colR) return;
-  function byId(id){ return document.getElementById(id); }
-  function unit(els){ els=(els||[]).filter(Boolean); return els.length?{first:els[0],els:els}:null; }
-
-  var inspEls=[byId('secInspector'),document.querySelector('.insp-tabs')];
-  document.querySelectorAll('.insp-panel').forEach(function(p){ inspEls.push(p); });
-
-  var leftUnits=[unit([byId('secProgram')]),unit([byId('secCapture')]),unit([document.querySelector('.format-card')]),unit([document.querySelector('.live-card')])].filter(Boolean);
-  var rightUnits=[unit([byId('secMoments')]),unit(inspEls),unit([byId('secExport')])].filter(Boolean);
-  var timeline=byId('secTimeline'), toolkit=byId('secToolkit'), clips=document.querySelector('.clips-strip');
-  var bandUnits=[unit([mainrow]),unit([timeline]),unit([toolkit]),unit([clips])].filter(Boolean);
-  var allUnits=leftUnits.concat(rightUnits,bandUnits);
-
-  function findUnit(el){
-    for(var i=0;i<allUnits.length;i++){ if(allUnits[i].els.indexOf(el)>-1) return allUnits[i]; }
-    return null;
-  }
-  function unitsIn(container){
-    var res=[],seen=[];
-    Array.prototype.forEach.call(container.children,function(ch){
-      var u=findUnit(ch);
-      if(u&&seen.indexOf(u)<0){ seen.push(u); res.push(u); }
-    });
-    return res;
-  }
-  function unitRect(u){
-    var top=Infinity,bottom=-Infinity;
-    u.els.forEach(function(el){
-      var r=el.getBoundingClientRect();
-      if(r.height>0){ if(r.top<top)top=r.top; if(r.bottom>bottom)bottom=r.bottom; }
-    });
-    if(top===Infinity){ var r0=u.first.getBoundingClientRect(); top=r0.top; bottom=r0.bottom; }
-    return {top:top,bottom:bottom};
-  }
-  function insertUnit(u,container,beforeEl){
-    u.els.forEach(function(el){ if(beforeEl) container.insertBefore(el,beforeEl); else container.appendChild(el); });
-  }
-
-  /* grips, resize edges, column splitter */
+  var wrap=document.querySelector('.wrap'); if(!wrap) return;
+  var panels=[];
+  document.querySelectorAll('.wrap section.card').forEach(function(s){ panels.push(s); });
+  if(!panels.length) return;
   var GRIP='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="5.5" r="1.7"/><circle cx="15" cy="5.5" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18.5" r="1.7"/><circle cx="15" cy="18.5" r="1.7"/></svg>';
-  function addGrip(u){
-    var h=u.first.querySelector('.card-h')||u.first.querySelector('.fmt-bar');
-    if(!h) return;
-    var b=document.createElement('button');
-    b.type='button'; b.className='panel-grip'; b.title='Drag to move'; b.setAttribute('aria-label','Drag to move panel');
-    b.innerHTML=GRIP;
-    h.insertBefore(b,h.firstChild);
-  }
-  function addEdge(el,cls){
-    var e=document.createElement('div'); e.className=cls; e.setAttribute('aria-hidden','true'); el.appendChild(e);
-  }
-  leftUnits.concat(rightUnits).forEach(function(u){
-    addGrip(u);
-    u.els.forEach(function(el){ if(!el.classList.contains('insp-tabs')) addEdge(el,'resize-edge-b'); });
-  });
-  bandUnits.forEach(function(u){ if(u.first!==mainrow) addGrip(u); });
-  [timeline,toolkit,clips].forEach(function(el){ if(el) addEdge(el,'resize-edge-t'); });
-  var split=document.createElement('div');
-  split.className='colsplit'; split.setAttribute('aria-hidden','true');
-  mainrow.insertBefore(split,colR);
-  mainrow.classList.add('has-splitter');
-
-  /* drag machinery (pointer based, desktop only) */
-  var drag=null;
-  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-  function growOf(el){ return parseFloat(window.getComputedStyle(el).flexGrow)||0; }
-  function inRect(el,e){
-    var r=el.getBoundingClientRect();
-    return e.clientX>=r.left-14&&e.clientX<=r.right+14&&e.clientY>=r.top-10&&e.clientY<=r.bottom+10;
-  }
-  function moveAmong(u,container,units,y){
-    var others=units.filter(function(x){ return x!==u; });
-    for(var i=0;i<others.length;i++){
-      var r=unitRect(others[i]);
-      if(y<(r.top+r.bottom)/2){ insertUnit(u,container,others[i].first); return; }
+  panels.forEach(function(sec){
+    var h=sec.querySelector('.card-h');
+    if(h){
+      var b=document.createElement('button');
+      b.type='button'; b.className='panel-grip'; b.title='Drag to move'; b.setAttribute('aria-label','Drag to move panel');
+      b.innerHTML=GRIP;
+      h.insertBefore(b,h.firstChild);
     }
-    insertUnit(u,container,null);
+    var er=document.createElement('div'); er.className='resize-edge-r'; er.setAttribute('aria-hidden','true'); sec.appendChild(er);
+    var eb=document.createElement('div'); eb.className='resize-edge-b'; eb.setAttribute('aria-hidden','true'); sec.appendChild(eb);
+  });
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+  function isVis(el){ var r=el.getBoundingClientRect(); return r.width>10&&r.height>10; }
+  function areaOf(el){
+    var cs=window.getComputedStyle(el);
+    return {rs:cs.gridRowStart,re:cs.gridRowEnd,cs:cs.gridColumnStart,ce:cs.gridColumnEnd};
   }
-
+  function setArea(el,a){ el.style.gridRowStart=a.rs; el.style.gridRowEnd=a.re; el.style.gridColumnStart=a.cs; el.style.gridColumnEnd=a.ce; }
+  function swapAreas(a,b){ var aa=areaOf(a), ab=areaOf(b); setArea(a,ab); setArea(b,aa); }
+  function trackIndex(tracks,pos){
+    var acc=0;
+    for(var i=0;i<tracks.length;i++){ acc+=tracks[i]; if(pos<=acc+6) return i; acc+=12; }
+    return tracks.length-1;
+  }
+  function retrack(tracks,i,desired){
+    var w=tracks.slice();
+    var total=tracks[i]+tracks[i+1];
+    desired=clamp(desired,70,total-70);
+    w[i]=desired; w[i+1]=total-desired;
+    return w.map(function(x){ return x.toFixed(1)+'fr'; }).join(' ');
+  }
+  var drag=null;
   document.addEventListener('pointerdown',function(e){
     if(!mq.matches||e.button!==0||!e.target.closest) return;
-    var sp=e.target.closest('.colsplit');
-    var edgeB=e.target.closest('.resize-edge-b');
-    var edgeT=e.target.closest('.resize-edge-t');
     var grip=e.target.closest('.panel-grip');
-    if(sp){
-      drag={mode:'split'}; sp.classList.add('dragging');
+    var edgeR=e.target.closest('.resize-edge-r');
+    var edgeB=e.target.closest('.resize-edge-b');
+    if(grip){
+      var secG=grip.closest('section'); if(!secG) return;
+      drag={mode:'swap',el:secG,swapped:null};
+      secG.classList.add('unit-dragging');
+      document.body.classList.add('layout-dragging');
+      e.preventDefault(); return;
+    }
+    if(edgeR){
+      drag={mode:'col',el:edgeR.parentElement};
       document.body.classList.add('layout-resizing-x'); e.preventDefault(); return;
     }
     if(edgeB){
-      var elB=edgeB.parentElement;
-      drag={mode:'sizeB',el:elB,y:e.clientY,h:elB.getBoundingClientRect().height};
+      drag={mode:'row',el:edgeB.parentElement};
       document.body.classList.add('layout-resizing-y'); e.preventDefault(); return;
-    }
-    if(edgeT){
-      var elT=edgeT.parentElement;
-      var units=unitsIn(wrap), idx=-1, i;
-      for(i=0;i<units.length;i++){ if(units[i].els.indexOf(elT)>-1){ idx=i; break; } }
-      var other=null;
-      if(idx>0) other=units[idx-1].first;
-      else if(idx===0&&units.length>1) other=units[1].first;
-      if(!other) return;
-      drag={mode:'sizeT',el:elT,other:other,y:e.clientY,
-        hEl:elT.getBoundingClientRect().height,hOther:other.getBoundingClientRect().height,
-        gEl:growOf(elT),gOther:growOf(other)};
-      document.body.classList.add('layout-resizing-y'); e.preventDefault(); return;
-    }
-    if(grip){
-      var sec=grip.closest('section');
-      var u=sec?findUnit(sec):null;
-      if(!u) return;
-      drag={mode:'move',unit:u,scope:bandUnits.indexOf(u)>-1?'band':'col'};
-      u.els.forEach(function(el){ el.classList.add('unit-dragging'); });
-      document.body.classList.add('layout-dragging');
-      e.preventDefault();
     }
   });
-
   document.addEventListener('pointermove',function(e){
     if(!drag) return;
-    if(drag.mode==='split'){
-      var r=mainrow.getBoundingClientRect();
-      var f=clamp((e.clientX-r.left)/r.width,0.2,0.8);
-      colL.style.flexGrow=(f*2.45).toFixed(3);
-      colR.style.flexGrow=((1-f)*2.45).toFixed(3);
-      return;
-    }
-    if(drag.mode==='sizeB'){
-      drag.el.style.height=clamp(drag.h+(e.clientY-drag.y),110,1500)+'px';
-      drag.el.classList.add('panel-sized');
-      return;
-    }
-    if(drag.mode==='sizeT'){
-      var nd=clamp(-(e.clientY-drag.y),-(drag.hEl-90),drag.hOther-90);
-      var hEl=drag.hEl+nd, hOther=drag.hOther-nd;
-      var sum=drag.gEl+drag.gOther, tot=drag.hEl+drag.hOther;
-      if(tot>0){
-        drag.el.style.flexGrow=(sum*hEl/tot).toFixed(3);
-        drag.other.style.flexGrow=(sum*hOther/tot).toFixed(3);
+    var p=drag.el, pr=p.getBoundingClientRect();
+    if(drag.mode==='swap'){
+      for(var i=0;i<panels.length;i++){
+        var q=panels[i]; if(q===p||!isVis(q)) continue;
+        var r=q.getBoundingClientRect();
+        if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){
+          if(drag.swapped!==q){ swapAreas(p,q); drag.swapped=q; }
+          return;
+        }
       }
       return;
     }
-    if(drag.mode==='move'){
-      if(drag.scope==='col'){
-        var col=inRect(colL,e)?colL:(inRect(colR,e)?colR:null);
-        if(!col) return;
-        moveAmong(drag.unit,col,unitsIn(col),e.clientY);
-      }else{
-        moveAmong(drag.unit,wrap,unitsIn(wrap),e.clientY);
-      }
+    if(drag.mode==='col'){
+      var cols=window.getComputedStyle(wrap).gridTemplateColumns.split(' ').map(parseFloat).filter(function(n){ return n>0; });
+      if(cols.length<2) return;
+      var idx=trackIndex(cols,pr.left-wrap.getBoundingClientRect().left-20+pr.width/2);
+      if(idx>=cols.length-1) return;
+      wrap.style.gridTemplateColumns=retrack(cols,idx,e.clientX-pr.left);
+      return;
+    }
+    if(drag.mode==='row'){
+      var rows=window.getComputedStyle(wrap).gridTemplateRows.split(' ').map(parseFloat).filter(function(n){ return n>0; });
+      if(rows.length<2) return;
+      var idy=trackIndex(rows,pr.top-wrap.getBoundingClientRect().top-10+pr.height/2);
+      if(idy>=rows.length-1) return;
+      wrap.style.gridTemplateRows=retrack(rows,idy,e.clientY-pr.top);
+      return;
     }
   });
-
   function endDrag(){
     if(!drag) return;
-    if(drag.unit) drag.unit.els.forEach(function(el){ el.classList.remove('unit-dragging'); });
-    split.classList.remove('dragging');
+    if(drag.el) drag.el.classList.remove('unit-dragging');
     drag=null;
     document.body.classList.remove('layout-dragging');
     document.body.classList.remove('layout-resizing-y');
@@ -3603,15 +3683,14 @@ renderTimeline(true);
   }
   document.addEventListener('pointerup',endDrag);
   document.addEventListener('pointercancel',endDrag);
-
-  /* reset to the default layout */
-  var resetBtn=byId('layoutResetBtn');
+  var resetBtn=document.getElementById('layoutResetBtn');
   if(resetBtn) resetBtn.addEventListener('click',function(){
-    bandUnits.forEach(function(u){ wrap.appendChild(u.first); u.first.style.flexGrow=''; });
-    leftUnits.forEach(function(u){ insertUnit(u,colL,null); });
-    rightUnits.forEach(function(u){ insertUnit(u,colR,null); });
-    colL.style.flexGrow=''; colR.style.flexGrow='';
-    document.querySelectorAll('.panel-sized').forEach(function(el){ el.classList.remove('panel-sized'); el.style.height=''; });
+    wrap.style.gridTemplateColumns='';
+    wrap.style.gridTemplateRows='';
+    panels.forEach(function(sec){
+      sec.style.gridRowStart=''; sec.style.gridRowEnd='';
+      sec.style.gridColumnStart=''; sec.style.gridColumnEnd='';
+    });
   });
 })();
 </script>
