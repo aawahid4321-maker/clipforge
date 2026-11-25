@@ -2093,10 +2093,11 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
      scrolling between them — and the YouTube preview is
      height-capped so a loaded link stops pushing the Drop
      zone and Auto clip far below the fold.
-   · The Preview's empty state is just an empty stage: the
-     big centre DROP VIDEO panel is removed (the tool is
-     link + Auto clip first; file upload lives in the Media
-     panel, and dropping a file on the stage still works).
+   · The Preview's empty state is the import gate: the
+     YouTube link row lives in the Preview itself (it drives
+     the Media panel's one loader and starts Auto clip), with
+     the DROP VIDEO button and size chips under it. The stage
+     frame itself stays plain dashed here.
    Desktop only — phones keep their existing layout.
    ============================================================ */
 @media(min-width:1024px){
@@ -2114,7 +2115,7 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
   .wrap[data-screen="editor"][data-tool="media"] #secCapture .card-h{position:sticky;top:0;z-index:6;background:var(--panel);padding-bottom:8px}
   .wrap[data-screen="editor"] #secCapture .autoclip-wrap{position:sticky;bottom:0;z-index:6;background:var(--panel)}
   .wrap[data-screen="editor"] #secCapture .yt-preview{max-height:190px}
-  /* Empty Preview: plain stage, no centre panel */
+  /* Empty Preview: plain dashed stage behind the gate */
   .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .stage{border:1.5px dashed var(--line-strong);background:var(--stage)}
 }
 </style>
@@ -2179,6 +2180,30 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
     <div class="stage-wrap">
       <div class="stage no-video" id="stage">
         <video id="video" playsinline crossorigin="anonymous"></video>
+        <div class="video-empty" id="videoEmpty">
+          <div class="gate-inner">
+            <span class="gate-title">Add your video</span>
+            <span class="gate-sub">Paste a YouTube link. Auto clip finds the best moments and makes your clips.</span>
+            <div class="gate-yt">
+              <input type="url" id="gateYtInput" placeholder="youtube.com/watch?v=…" autocomplete="off" spellcheck="false" aria-label="YouTube link">
+              <button class="btn primary" id="gateYtLoadBtn" type="button">Load</button>
+            </div>
+            <p class="gate-status" id="gateYtStatus" role="status"></p>
+            <div class="gate-or"><span>or</span></div>
+            <button class="btn primary gate-drop" id="gateDropBtn" type="button">
+              <svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M7.5 8L12 3.5L16.5 8M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg>
+              <span class="lbl-upload">Upload video</span>
+              <span class="lbl-drop">DROP VIDEO</span>
+              <span class="gate-drop-s" id="gateFmtLabel">9:16 Shorts</span>
+            </button>
+            <div class="gate-chips" role="group" aria-label="Output size">
+              <button type="button" class="gate-chip cf-gate-chip active" data-gfmt="vertical">9:16</button>
+              <button type="button" class="gate-chip cf-gate-chip" data-gfmt="wide">16:9</button>
+              <button type="button" class="gate-chip cf-gate-chip" data-gfmt="square">1:1</button>
+            </div>
+            <span class="gate-hint">MP4 · WebM · MOV</span>
+          </div>
+        </div>
         <div class="crop-frame" id="cropFrame" aria-hidden="true">
           <span class="cf-tag mono" id="cropTag">16:9 / CROP 1</span>
           <div class="cf-line cf-v1"></div><div class="cf-line cf-v2"></div>
@@ -5583,7 +5608,8 @@ renderTimeline(true);
   function gateLoad(){
     if(!gateIn || !ytIn) return;
     ytIn.value=gateIn.value;
-    if(typeof loadYouTube==='function') loadYouTube();
+    if(typeof loadLinkAndClip==='function') loadLinkAndClip();
+    else if(typeof loadYouTube==='function') loadYouTube();
     syncStatus();
   }
   function syncStatus(){
