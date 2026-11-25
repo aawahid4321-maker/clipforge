@@ -1768,6 +1768,93 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
   .wrap.pp-sheet-sized[data-tool="export"] .clips-strip{flex:0 0 var(--pp-m-sheet,260px) !important;height:var(--pp-m-sheet,260px);overflow-y:auto !important;overflow-x:hidden}
 }
 </style>
+<style id="cf-trim-separate">
+/* ============================================================
+   TRIM IS ITS OWN PANEL — separate from the Timeline.
+   Trim used to be a cramped side column glued inside the
+   Timeline card (and, on phones, hidden inside the Cut sheet),
+   which made one simple job — pick a start and an end — look
+   complicated. Now:
+   · The Timeline card holds ONLY the tracks, full width.
+   · Trim is a standalone card of its own, sitting directly
+     above the Timeline, laid out as three plain steps:
+     1 · Start & end   2 · Quick length   3 · Make clip.
+   · The old tracks|Trim resize divider is retired.
+   · On phones the Trim card is its own sheet under the
+     Timeline, shown with the Cut tool — never inside another
+     panel — with just the sliders, Set buttons and Make clip.
+   ============================================================ */
+
+/* ---- Shared panel layout ---- */
+.trim-card{display:flex;flex-direction:column;overflow:hidden}
+.trim-h{align-items:flex-start}
+.trim-body{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr) 230px;gap:10px 26px;padding:12px 20px 16px;align-items:start}
+.trim-gt{font-family:"Anton","Inter",sans-serif;font-size:14.5px;font-weight:400;letter-spacing:.05em;text-transform:uppercase;color:var(--text);margin-bottom:9px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.trim-gt span{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted)}
+.trim-card .io-grid{margin:0 0 6px}
+.trim-card .ctl-row{grid-template-columns:52px minmax(0,1fr) 46px;margin:0}
+.trim-setrow{margin-top:8px}
+.trim-setrow .btn{flex:1 1 0}
+.trim-card .clip-len-custom{margin-top:10px}
+.trim-make #addClipBtn{width:100%;min-height:52px;font-size:16px;font-weight:800}
+.trim-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin:9px 0 0}
+/* The Timeline is tracks only now — no side column, no divider */
+.tl-body{grid-template-columns:minmax(0,1fr) !important}
+.pp-trim{display:none !important}
+
+/* ---- Desktop: Trim strip above a slimmer Timeline strip ---- */
+@media(min-width:1024px){
+  .wrap[data-screen="editor"]{--pp-tl:132px;grid-template-areas:"program railA" "program railB" "trim trim" "timeline timeline" !important;grid-template-rows:minmax(0,1fr) minmax(0,1fr) 178px var(--pp-tl,132px) !important}
+  .wrap[data-screen="editor"] #secTrim{display:flex !important;grid-area:trim;min-height:0}
+  .wrap[data-screen="editor"] .trim-card .card-h{padding:10px 16px 0;border-bottom:none;padding-bottom:0}
+  .wrap[data-screen="editor"] .trim-card .card-h h2{font-size:17px}
+  .wrap[data-screen="editor"] .trim-card .card-sub{display:none}
+  .wrap[data-screen="editor"] .trim-body{padding:8px 16px 10px;gap:8px 24px}
+  .wrap[data-screen="editor"] .trim-gt{font-size:13.5px;margin-bottom:6px}
+  .wrap[data-screen="editor"] .trim-card .io-box{padding:7px 11px}
+  .wrap[data-screen="editor"] .trim-card .io-box input{font-size:16px}
+  .wrap[data-screen="editor"] .trim-card input[type=range]{height:20px}
+  .wrap[data-screen="editor"] .trim-card .chip{min-height:32px;padding:5px 11px;font-size:12.5px}
+  .wrap[data-screen="editor"] .trim-card .clip-len-custom{margin-top:6px;flex-wrap:nowrap}
+  .wrap[data-screen="editor"] .trim-card .clip-len-custom input{min-height:34px}
+  .wrap[data-screen="editor"] .trim-card .btn{min-height:36px}
+  .wrap[data-screen="editor"] .trim-make #addClipBtn{min-height:46px}
+  .wrap[data-screen="editor"] .trim-note{margin-top:6px;font-size:11.5px}
+  /* Rail divider now ends above the Trim strip, not the Timeline */
+  .pp-rail{bottom:calc(var(--pp-tl,132px) + 202px)}
+  /* No video yet = import gate: no Trim panel either */
+  .wrap[data-screen="editor"]:has(.stage.no-video) #secTrim{display:none !important}
+}
+@media(min-width:1024px) and (max-width:1280px){
+  .wrap[data-screen="editor"]{grid-template-rows:minmax(0,1fr) minmax(0,1fr) 196px var(--pp-tl,132px) !important}
+  .trim-body{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 200px;gap:8px 18px}
+  .wrap[data-screen="editor"] .trim-card .clip-len-custom{flex-wrap:wrap}
+}
+
+/* ---- Phones / tablets: Trim is its own Cut sheet ---- */
+@media(max-width:1023px){
+  .wrap[data-screen="editor"] #secTrim{display:none !important}
+  .wrap[data-screen="editor"][data-tool="cut"] #secTrim{display:block !important;order:3;flex:0 0 auto;width:100%;border-top:1px solid var(--line) !important;padding:10px 12px 12px}
+  .wrap[data-screen="editor"]:has(.stage.no-video) #secTrim{display:none !important}
+  /* Its heading shows on phones (other cards hide theirs) */
+  .wrap[data-screen="editor"] #secTrim .card-h{display:flex !important;padding:0 0 8px;border-bottom:none}
+  .wrap[data-screen="editor"] #secTrim .card-h h2{font-size:16px}
+  .wrap[data-screen="editor"] #secTrim .card-sub{display:none}
+  .wrap[data-screen="editor"] #secTrim .trim-body{display:flex;flex-direction:column;gap:8px;padding:0}
+  .wrap[data-screen="editor"] #secTrim .trim-gt{display:none}
+  .wrap[data-screen="editor"] #secTrim .trim-range .trim-gt{display:block;font-size:13.5px;margin-bottom:4px}
+  /* Keep it simple: sliders + Set buttons + Make clip. The number
+     boxes, quick-length chips and custom seconds stay desktop-only,
+     exactly as the old in-Cut trim behaved on phones. */
+  .wrap[data-screen="editor"] #secTrim .io-grid,
+  .wrap[data-screen="editor"] #secTrim .trim-lengths{display:none !important}
+  .wrap[data-screen="editor"] #secTrim .ctl-row{grid-template-columns:44px minmax(0,1fr) 44px;margin:0}
+  .wrap[data-screen="editor"] #secTrim .trim-setrow{margin-top:4px}
+  .wrap[data-screen="editor"] #secTrim .trim-setrow .btn{min-height:44px}
+  .wrap[data-screen="editor"] #secTrim .trim-make #addClipBtn{min-height:46px}
+  .wrap[data-screen="editor"] #secTrim .trim-note{display:none}
+}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -2208,40 +2295,57 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
     </div></div></div>
         <div class="tl-ph-wrap"><div class="tl-playhead" id="tlPlayhead"></div></div>
       </div>
-      <div class="tl-side">
-        <div class="sec">
-          <div class="sec-t">Trim</div>
-          <div class="io-grid">
-            <div class="io-box"><label>In <span><button class="nudge" data-t="in" data-d="-1">−1</button> <button class="nudge" data-t="in" data-d="1">+1</button></span></label><input type="number" id="inNum" min="0" step="0.5" value="0"></div>
-            <div class="io-box"><label>Out <span><button class="nudge" data-t="out" data-d="-1">−1</button> <button class="nudge" data-t="out" data-d="1">+1</button></span></label><input type="number" id="outNum" min="0" step="0.5" value="30"></div>
-          </div>
-          <div class="ctl-row"><label>In</label><input type="range" id="inRange" min="0" max="100" step="0.1" value="0"><output id="inLabel">00:00</output></div>
-          <div class="ctl-row"><label>Out</label><input type="range" id="outRange" min="0" max="100" step="0.1" value="30"><output id="outLabel">00:30</output></div>
-          <div class="btn-row" style="margin-top:8px">
-            <button class="btn" id="setInBtn">Set In</button>
-            <button class="btn" id="setOutBtn">Set Out</button>
-          </div>
-          <div class="chips" id="durChips" style="margin-top:10px">
-            <button class="chip" data-dur="15">15s</button>
-            <button class="chip active" data-dur="30">30s</button>
-            <button class="chip" data-dur="60">60s</button>
-            <button class="chip" data-dur="90">90s</button>
-          </div>
-        </div>
-        <button class="btn accent icon-btn" id="addClipBtn" style="width:100%"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="7" r="2.6"/><circle cx="6" cy="17" r="2.6"/><path d="M8.2 9.2L20 19M8.2 14.8L20 5"/></svg><span>Make clip</span></button>
-    <div style="padding:16px 20px 0">
-      <div class="sec-t" style="margin-bottom:10px">Clip length <span id="clipLenLabel">30s per clip</span></div>
-      <div class="chips" id="clipLenChips" role="group" aria-label="Clip length">
-        <button class="chip" data-len="15" type="button">15s</button>
-        <button class="chip active" data-len="30" type="button">30s</button>
-        <button class="chip" data-len="45" type="button">45s</button>
-        <button class="chip" data-len="60" type="button">60s</button>
-      </div>
-      <div class="clip-len-custom">
-        <label>Custom seconds<input type="number" id="clipLenCustom" min="5" max="600" step="1" placeholder="e.g. 40"></label>
-        <button class="btn" id="clipLenApply" type="button">Use custom</button>
-      </div>
     </div>
+  </section>
+
+  <!-- TRIM — its own panel, separate from the Timeline. The Timeline
+       above only shows the tracks; every trim control lives here. -->
+  <section class="card trim-card ord-trim" id="secTrim" aria-label="Trim">
+    <div class="card-h trim-h">
+      <div>
+        <h2>Trim</h2>
+        <p class="card-sub">Pick where your clip starts and ends — that's all this panel does.</p>
+      </div>
+      <span class="badge" id="trimDurBadge">00:00 – 00:30 · 30s clip</span>
+    </div>
+    <div class="trim-body">
+      <div class="trim-group trim-range">
+        <div class="trim-gt">1 · Start &amp; end</div>
+        <div class="io-grid">
+          <div class="io-box"><label>Start <span><button class="nudge" data-t="in" data-d="-1">−1</button> <button class="nudge" data-t="in" data-d="1">+1</button></span></label><input type="number" id="inNum" min="0" step="0.5" value="0" aria-label="Clip start, in seconds"></div>
+          <div class="io-box"><label>End <span><button class="nudge" data-t="out" data-d="-1">−1</button> <button class="nudge" data-t="out" data-d="1">+1</button></span></label><input type="number" id="outNum" min="0" step="0.5" value="30" aria-label="Clip end, in seconds"></div>
+        </div>
+        <div class="ctl-row"><label>Start</label><input type="range" id="inRange" min="0" max="100" step="0.1" value="0"><output id="inLabel">00:00</output></div>
+        <div class="ctl-row"><label>End</label><input type="range" id="outRange" min="0" max="100" step="0.1" value="30"><output id="outLabel">00:30</output></div>
+        <div class="btn-row trim-setrow">
+          <button class="btn" id="setInBtn" type="button">Set Start here</button>
+          <button class="btn" id="setOutBtn" type="button">Set End here</button>
+        </div>
+      </div>
+      <div class="trim-group trim-lengths">
+        <div class="trim-gt">2 · Quick length <span>moves End</span></div>
+        <div class="chips" id="durChips">
+          <button class="chip" data-dur="15">15s</button>
+          <button class="chip active" data-dur="30">30s</button>
+          <button class="chip" data-dur="60">60s</button>
+          <button class="chip" data-dur="90">90s</button>
+        </div>
+        <div class="trim-gt" style="margin-top:14px">Auto clip length <span id="clipLenLabel">30s per clip</span></div>
+        <div class="chips" id="clipLenChips" role="group" aria-label="Auto clip length">
+          <button class="chip" data-len="15" type="button">15s</button>
+          <button class="chip active" data-len="30" type="button">30s</button>
+          <button class="chip" data-len="45" type="button">45s</button>
+          <button class="chip" data-len="60" type="button">60s</button>
+        </div>
+        <div class="clip-len-custom">
+          <label>Custom seconds<input type="number" id="clipLenCustom" min="5" max="600" step="1" placeholder="e.g. 40"></label>
+          <button class="btn" id="clipLenApply" type="button">Use custom</button>
+        </div>
+      </div>
+      <div class="trim-group trim-make">
+        <div class="trim-gt">3 · Done</div>
+        <button class="btn accent icon-btn" id="addClipBtn" type="button"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="7" r="2.6"/><circle cx="6" cy="17" r="2.6"/><path d="M8.2 9.2L20 19M8.2 14.8L20 5"/></svg><span>Make clip</span></button>
+        <p class="trim-note">Makes one clip from Start to End and adds it to My clips.</p>
       </div>
     </div>
   </section>
@@ -4652,24 +4756,22 @@ renderTimeline(true);
 })();
 </script>
 <script>
-/* Mobile only: Trim / Make clip / Clip length live inside the Cut
-   panel, so the timeline stays a thin always-visible strip and the
-   Cut sheet is the single scrolling area. On desktop the block
-   returns to the timeline's side column, untouched. Listeners were
-   bound by id / class at init and survive the move. */
+/* Trim is its own panel (#secTrim) now — separate from the Timeline
+   on every screen size. It is never relocated into the Timeline or
+   the Cut panel; the Cut tool simply reveals it as its own sheet on
+   phones (see the cf-trim-separate styles). This block only keeps
+   the panel's duration badge in sync with the Start/End points. */
 (function(){
-  var side=document.querySelector('#secTimeline .tl-side');
-  var tlBody=document.querySelector('#secTimeline .tl-body');
-  var moments=document.getElementById('secMoments');
-  if(!side||!tlBody||!moments) return;
-  var mq=window.matchMedia('(max-width:1023px)');
-  function place(){
-    if(mq.matches){ if(side.parentNode!==moments) moments.appendChild(side); }
-    else if(side.parentNode!==tlBody){ tlBody.appendChild(side); }
+  var badge=document.getElementById('trimDurBadge');
+  if(!badge) return;
+  function fmtT(s){ s=Math.max(0,Math.floor(s||0)); var m=Math.floor(s/60), ss=s%60; return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0'); }
+  function sync(){
+    var a=(typeof window.inPoint==='number')?window.inPoint:parseFloat((document.getElementById('inNum')||{}).value)||0;
+    var b=(typeof window.outPoint==='number')?window.outPoint:parseFloat((document.getElementById('outNum')||{}).value)||0;
+    var d=Math.max(0,Math.round(b-a));
+    badge.textContent=fmtT(a)+' – '+fmtT(b)+' · '+d+'s clip';
   }
-  place();
-  if(mq.addEventListener) mq.addEventListener('change',place);
-  else if(mq.addListener) mq.addListener(place);
+  sync(); setInterval(sync,600);
 })();
 </script>
 <script>
