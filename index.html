@@ -2076,6 +2076,48 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
 .yt-shield{position:absolute;inset:0;z-index:2;cursor:pointer}
 .yt-shield.off{display:none}
 </style>
+<style id="cf-results-area">
+/* ============================================================
+   RESULTS AREA + TOOLS NEVER HIDDEN + NO CENTRE PANEL —
+   three fixes from the owner's screenshots:
+   · The Timeline's bottom strip is now the RESULTS area:
+     every clip Auto clip makes (server or local) lands in
+     the My clips strip, and that strip sits full-width at
+     the bottom of the editor where the Timeline tracks used
+     to be. The tracks are gone from the editor; Trim keeps
+     its own panel above the results strip, and the strip's
+     top-edge divider still resizes it (--pp-tl).
+   · The Media panel no longer buries its tools: its header
+     stays pinned at the top of the panel and the Auto clip
+     bar stays pinned at the bottom, with only the middle
+     scrolling between them — and the YouTube preview is
+     height-capped so a loaded link stops pushing the Drop
+     zone and Auto clip far below the fold.
+   · The Preview's empty state is just an empty stage: the
+     big centre DROP VIDEO panel is removed (the tool is
+     link + Auto clip first; file upload lives in the Media
+     panel, and dropping a file on the stage still works).
+   Desktop only — phones keep their existing layout.
+   ============================================================ */
+@media(min-width:1024px){
+  /* Results area where the Timeline was */
+  .wrap[data-screen="editor"] #secTimeline{display:none !important}
+  .wrap[data-screen="editor"] .clips-strip{display:flex !important;flex-direction:column;grid-area:timeline !important;min-height:0;overflow:hidden}
+  .wrap[data-screen="editor"] .clips-strip .card-h{flex:0 0 auto;padding:10px 16px 0}
+  .wrap[data-screen="editor"] .clips-strip .card-h h2{font-size:17px}
+  .wrap[data-screen="editor"] .clips-strip .list{flex:1 1 auto;min-height:0;display:flex;flex-direction:row;align-items:stretch;gap:10px;padding:8px 14px 12px;overflow-x:auto !important;overflow-y:hidden !important;scrollbar-width:thin !important;scrollbar-color:var(--line-strong) transparent}
+  .wrap[data-screen="editor"] .clips-strip .list::-webkit-scrollbar{display:block !important;width:8px !important;height:8px !important}
+  .wrap[data-screen="editor"] .clips-strip .list::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:99px}
+  .wrap[data-screen="editor"] .clips-strip .clip-item{flex:0 0 320px;max-width:320px;overflow:hidden}
+  .wrap[data-screen="editor"] .clips-strip .empty{flex:1 1 auto;display:flex;align-items:center;justify-content:center}
+  /* Media panel: header pinned top, Auto clip pinned bottom */
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture .card-h{position:sticky;top:0;z-index:6;background:var(--panel);padding-bottom:8px}
+  .wrap[data-screen="editor"] #secCapture .autoclip-wrap{position:sticky;bottom:0;z-index:6;background:var(--panel)}
+  .wrap[data-screen="editor"] #secCapture .yt-preview{max-height:190px}
+  /* Empty Preview: plain stage, no centre panel */
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .stage{border:1.5px dashed var(--line-strong);background:var(--stage)}
+}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -2153,9 +2195,6 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
         <div class="safe ui-zone ui-top" id="uiTop">UI</div>
         <div class="safe ui-zone ui-bot" id="uiBot">Captions</div>
         <div class="focus-dot" id="focusDot"></div>
-        <div class="video-empty" id="videoEmpty" role="button" tabindex="0" aria-label="Upload a video file"><div class="gate-inner">
-          <button class="btn primary icon-btn gate-drop" type="button" id="stageUploadBtn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.2 15.4V6.1L7.9 9.4 6.4 7.9 12 2.3l5.6 5.6-1.5 1.5-3.3-3.3v9.3zM4.5 18.6h15V21h-15z"/></svg><span class="lbl-upload">Upload video</span><span class="lbl-drop">DROP VIDEO</span><span class="gate-drop-s" id="gateFmtLabel">9:16 Shorts</span></button>
-        </div></div>
         <span class="live-dot" id="liveDot">Preview</span>
         <span class="fmt-tag" id="fmtTag">9:16</span>
         <button class="guides-toggle icon-btn has-tip tip-below" id="guidesToggle" type="button" aria-pressed="false" data-tip="Guides" aria-label="Toggle guides"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5H11V11H3.5zM13 3.5h7.5V11H13zM3.5 13H11v7.5H3.5zM13 13h7.5v7.5H13z"/></svg></button>
@@ -2226,14 +2265,14 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
       <button class="btn primary" id="serverClipBtn" type="button" style="width:100%;margin-top:12px;display:none">Auto clip from link (free server)</button>
       <p class="yt-status" id="serverStatus" role="status"></p>
       <details class="adv">
-        <summary><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h8M18 7.5h2M4 16.5h2M12 16.5h8"/><circle cx="15" cy="7.5" r="2.2"/><circle cx="9" cy="16.5" r="2.2"/></svg><span class="adv-txt"><strong>Server settings</strong><small>Free server connected — link auto-clip is ready</small></span><span class="adv-chev" aria-hidden="true">▾</span></summary>
+        <summary><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h8M18 7.5h2M4 16.5h2M12 16.5h8"/><circle cx="15" cy="7.5" r="2.2"/><circle cx="9" cy="16.5" r="2.2"/></svg><span class="adv-txt"><strong>Server settings</strong><small>Free server connected. Auto clip is ready.</small></span><span class="adv-chev" aria-hidden="true">▾</span></summary>
         <div class="adv-body">
           <label for="serverUrlInput">Server Worker URL</label>
           <div class="yt-row">
             <input type="url" id="serverUrlInput" aria-label="Server Worker URL" autocomplete="off" spellcheck="false">
             <button class="btn" id="serverUrlSaveBtn" type="button">Save</button>
           </div>
-          <p class="hint" id="serverHint" style="margin-top:8px">Connected: <span class="mono" id="serverActiveUrl">clipforge-worker.clipforge-tool.workers.dev</span> · Free AI ranking is <b id="aiStateTxt">on</b> — Auto clip labels moments and writes hooks with a free AI API (no key needed).</p>
+          <p class="hint" id="serverHint" style="margin-top:8px">Connected: <span class="mono" id="serverActiveUrl">clipforge-worker.clipforge-tool.workers.dev</span>. Free AI ranking is <b id="aiStateTxt">on</b>. Auto clip labels each moment and writes a hook. No key needed.</p>
         </div>
       </details>
     </div>
@@ -2722,7 +2761,7 @@ function loadFile(file){
   if(!file) return; videoFile=file; lastPicked=[]; lastDur=0;
   video.src=URL.createObjectURL(file); video.load();
   hasVideo=true; stage.classList.remove('no-video'); syncGuides();
-  $('videoEmpty').style.display='none'; $('liveDot').style.display='block';
+  var ve=$('videoEmpty'); if(ve) ve.style.display='none'; $('liveDot').style.display='block';
   if(ytId){ var st=$('ytStatus'); st.className='yt-status ok'; st.textContent='Ready'; $('ytHelp').classList.remove('on'); hideYtFallback(); }
   eagerGraph(); applyAudioPreview(); updateOverlays(); toast('Loaded: '+file.name);
   if(typeof updateServerClipVisibility==='function') updateServerClipVisibility();
@@ -3002,8 +3041,11 @@ if(serverClipBtnEl) serverClipBtnEl.addEventListener('click',startServerClip);
 updateServerClipVisibility();
 
 fileInput.addEventListener('change',function(){loadFile(this.files[0]);});
-$('videoEmpty').addEventListener('click',function(e){ if(e.target.closest && e.target.closest('.gate-yt,.gate-chips,input,select,textarea')) return; fileInput.click(); });
-$('videoEmpty').addEventListener('keydown',function(e){ if(e.target.closest && e.target.closest('.gate-yt,.gate-chips,input,select,textarea')) return; if(e.key==='Enter'||e.key===' '){ e.preventDefault(); e.stopPropagation(); fileInput.click(); } });
+var veEl=$('videoEmpty');
+if(veEl){
+  veEl.addEventListener('click',function(e){ if(e.target.closest && e.target.closest('.gate-yt,.gate-chips,input,select,textarea')) return; fileInput.click(); });
+  veEl.addEventListener('keydown',function(e){ if(e.target.closest && e.target.closest('.gate-yt,.gate-chips,input,select,textarea')) return; if(e.key==='Enter'||e.key===' '){ e.preventDefault(); e.stopPropagation(); fileInput.click(); } });
+}
 dropZone.addEventListener('dragover',function(e){e.preventDefault();});
 dropZone.addEventListener('drop',function(e){e.preventDefault(); if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);});
 document.addEventListener('dragover',function(e){e.preventDefault();});
@@ -5127,6 +5169,11 @@ renderTimeline(true);
       b.classList.toggle('active',b.getAttribute('data-tool')===name);
     });
     wrap.scrollTop=0;
+    /* A freshly opened panel always starts at its top, so its
+       first tools (link box, Find moments, caption field) are
+       on screen instead of left scrolled out of view */
+    ['secCapture','secMoments','secInspector','secExport'].forEach(function(id){ var el=document.getElementById(id); if(el) el.scrollTop=0; });
+    document.querySelectorAll('.insp-panel,.live-card,.format-card').forEach(function(el){ el.scrollTop=0; });
   }
   forceScreen();
   setTool('media');
@@ -5404,7 +5451,7 @@ renderTimeline(true);
     if(!mqD.matches) return;
     var wr=wrap.getBoundingClientRect();
     var w=wr.right-ev.clientX-16;
-    wrap.style.setProperty('--pp-rail',Math.round(clamp(w,260,Math.min(620,wr.width*0.55)))+'px');
+    wrap.style.setProperty('--pp-rail',Math.round(clamp(w,330,Math.min(620,wr.width*0.55)))+'px');
   },function(){ wrap.style.removeProperty('--pp-rail'); });
 
   /* Timeline top edge (horizontal) */
