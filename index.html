@@ -1855,6 +1855,128 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
   .wrap[data-screen="editor"] #secTrim .trim-note{display:none}
 }
 </style>
+<style id="cf-desktop-gate">
+/* ============================================================
+   DESKTOP EMPTY PREVIEW = IMPORT GATE — while no video is
+   loaded, the Preview area no longer shows a small Upload
+   button floating in a narrow 9:16 box with dead dark space
+   around it. The stage fills the whole Preview card and the
+   empty state is the same clear prompt as the phone import
+   gate: a big DROP VIDEO button with the 9:16 Shorts label,
+   format chips, and a YouTube link row. The moment a video
+   loads, the stage loses .no-video, this gate is gone, and
+   the normal preview returns exactly as before.
+   Phones keep their existing full-screen import gate — here
+   the gate extras stay hidden and the stage keeps its single
+   Upload video button.
+   ============================================================ */
+.gate-title,.gate-sub,.gate-or,.gate-yt,.gate-chips,.gate-hint,.gate-status,.lbl-drop,.gate-drop-s{display:none}
+@media(min-width:1024px){
+  /* The stage-wrap is a centred grid with auto-sized tracks, so a
+     percentage-sized stage collapses the track to the stage's own
+     content (~300px) — the squeezed narrow box. In the gate state
+     the single track must fill the wrap, and the stage stretches
+     to that track, so the dashed gate spans the whole Preview
+     card with no dead dark space on either side. */
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .stage-wrap{
+    grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);
+  }
+  /* Stage fills the Preview card instead of the narrow format box
+     (applyFormat sets an inline aspect-ratio / max-width for the
+     video frame — the empty gate overrides both) */
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .stage{
+    width:100% !important;max-width:100% !important;height:100% !important;aspect-ratio:auto !important;
+    justify-self:stretch;align-self:stretch;
+    border:1.5px dashed var(--line-strong);
+    background:radial-gradient(560px 300px at 50% 0%,rgba(224,68,200,.10),rgba(224,68,200,0) 65%),var(--stage);
+    transition:border-color .15s ease,background .15s ease;
+  }
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .stage.cf-drag{
+    border-color:var(--accent);
+    background:radial-gradient(560px 300px at 50% 0%,rgba(224,68,200,.16),rgba(224,68,200,0) 65%),var(--accent-soft);
+  }
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .video-empty{padding:18px}
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .gate-inner{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
+    width:min(520px,100%);margin:0 auto;text-align:center;
+  }
+  .gate-title{display:block;font-family:"Anton","Inter",sans-serif;font-size:27px;font-weight:400;letter-spacing:.04em;text-transform:uppercase;color:var(--text);line-height:1.15}
+  .gate-sub{display:block;margin-top:-5px;font-size:13.5px;font-weight:500;line-height:1.5;color:var(--muted)}
+  /* Big DROP VIDEO button — same pink block as the phone gate's
+     drop zone, with the current format label under the title */
+  .wrap[data-screen="editor"] .preview-card .video-empty .gate-drop.btn{
+    display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+    width:min(420px,100%);min-height:74px;padding:10px 18px;border-radius:14px;cursor:pointer;margin-top:2px;
+  }
+  .gate-drop .ic{width:22px;height:22px}
+  .gate-drop .lbl-upload{display:none}
+  .gate-drop .lbl-drop{display:block;font-size:20px;font-weight:800;letter-spacing:.05em;line-height:1.2}
+  .gate-drop .gate-drop-s{display:block;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.85);line-height:1.3}
+  /* Format chips — wired to the real size selector by the
+     existing .cf-gate-chip handler, same as the phone gate */
+  .gate-chips{display:flex;gap:8px;justify-content:center}
+  .gate-chip{min-height:38px;padding:7px 18px;border-radius:999px;border:1px solid var(--line-strong);background:var(--panel);color:var(--text);font-weight:700;font-size:13.5px;cursor:pointer}
+  .gate-chip:hover{border-color:var(--faint)}
+  .gate-chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink)}
+  .gate-or{display:flex;align-items:center;gap:12px;width:min(420px,100%);color:var(--faint);font-size:12px;font-weight:600}
+  .gate-or::before,.gate-or::after{content:"";flex:1 1 auto;height:1px;background:var(--line)}
+  /* YouTube link row — mirrors the Media panel's link box:
+     Load copies the link into the real input and runs the
+     same loader, so status and preview stay in sync */
+  .gate-yt{display:flex;gap:8px;width:min(420px,100%)}
+  .gate-yt input{
+    flex:1 1 auto;min-width:0;padding:10px 13px;min-height:44px;
+    border:1px solid var(--line-strong);border-radius:8px;background:var(--panel);
+    font-size:14px;color:var(--text);cursor:text;
+  }
+  .gate-yt input::placeholder{color:var(--faint)}
+  .gate-yt input:focus{border-color:var(--accent);outline:none}
+  .gate-yt .btn{flex:0 0 auto;min-height:44px}
+  /* The editor-wide empty-state button rule inflates this Load
+     button to 52px — pin it back to the row's 44px height */
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .video-empty .gate-yt .btn{min-height:44px;padding:9px 22px;font-size:14.5px}
+  .gate-status{display:none;margin:0;font-size:13px;font-weight:600;line-height:1.4}
+  .gate-status.ok{display:block;color:var(--ok)}
+  .gate-status.err{display:block;color:var(--err)}
+  .gate-hint{display:block;font-size:12px;font-weight:500;color:var(--faint)}
+}
+/* Short desktop windows: tighten the gate so it still fits
+   the Preview card with nothing clipped */
+@media(min-width:1024px) and (max-height:900px){
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .video-empty{padding:12px}
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .gate-inner{gap:7px}
+  .gate-title{font-size:23px}
+  .wrap[data-screen="editor"] .preview-card .video-empty .gate-drop.btn{min-height:64px;padding:8px 16px}
+  .gate-drop .lbl-drop{font-size:18px}
+  /* The MP4 · WebM · MOV hint stays visible even in short windows */
+}
+</style>
+<style id="cf-cover-trim-gap">
+/* ============================================================
+   NO VIDEO = NO DEAD STRIP — the Trim panel is hidden until a
+   video loads, but the desktop editor grid still reserved its
+   full 178px row for it, leaving a big empty black band
+   between the Preview / Add-your-video row and the Timeline —
+   pure wasted space that looked broken. Now, while there is
+   no video, that row is removed from the grid entirely: the
+   Preview and the tool rail stretch down to fill the freed
+   space and the Timeline sits directly underneath them, with
+   no blank gap anywhere. The moment a video loads, the stage
+   loses .no-video, this rule stops applying, and the Trim
+   strip returns in its own row exactly as before. The rail
+   divider's bottom offset follows the same logic, so it ends
+   just above the Timeline instead of floating over the gap.
+   ============================================================ */
+@media(min-width:1024px){
+  .wrap[data-screen="editor"]:has(.stage.no-video){
+    grid-template-areas:"program railA" "program railB" "timeline timeline" !important;
+    grid-template-rows:var(--pp-r1,1fr) minmax(0,1fr) var(--pp-tl,132px) !important;
+  }
+  .wrap[data-screen="editor"]:has(.stage.no-video) .pp-rail{
+    bottom:calc(var(--pp-tl,132px) + 14px) !important;
+  }
+}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -1932,7 +2054,23 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
         <div class="safe ui-zone ui-top" id="uiTop">UI</div>
         <div class="safe ui-zone ui-bot" id="uiBot">Captions</div>
         <div class="focus-dot" id="focusDot"></div>
-        <div class="video-empty" id="videoEmpty" role="button" tabindex="0" aria-label="Upload a video file"><div><button class="btn primary icon-btn" type="button" id="stageUploadBtn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.2 15.4V6.1L7.9 9.4 6.4 7.9 12 2.3l5.6 5.6-1.5 1.5-3.3-3.3v9.3zM4.5 18.6h15V21h-15z"/></svg><span>Upload video</span></button></div></div>
+        <div class="video-empty" id="videoEmpty" role="button" tabindex="0" aria-label="Upload a video file"><div class="gate-inner">
+          <b class="gate-title">Add a video to start</b>
+          <span class="gate-sub">Drop a video file here, or paste a YouTube link — your preview appears in this space.</span>
+          <button class="btn primary icon-btn gate-drop" type="button" id="stageUploadBtn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.2 15.4V6.1L7.9 9.4 6.4 7.9 12 2.3l5.6 5.6-1.5 1.5-3.3-3.3v9.3zM4.5 18.6h15V21h-15z"/></svg><span class="lbl-upload">Upload video</span><span class="lbl-drop">DROP VIDEO</span><span class="gate-drop-s" id="gateFmtLabel">9:16 Shorts</span></button>
+          <div class="gate-chips" role="group" aria-label="Output size">
+            <button type="button" class="cf-gate-chip gate-chip active" data-gfmt="vertical">9:16</button>
+            <button type="button" class="cf-gate-chip gate-chip" data-gfmt="wide">16:9</button>
+            <button type="button" class="cf-gate-chip gate-chip" data-gfmt="square">1:1</button>
+          </div>
+          <div class="gate-or" aria-hidden="true"><span>or paste a YouTube link</span></div>
+          <div class="gate-yt">
+            <input type="url" id="gateYtInput" placeholder="youtube.com/watch?v=…" autocomplete="off" spellcheck="false" aria-label="YouTube link">
+            <button class="btn primary" id="gateYtLoadBtn" type="button">Load</button>
+          </div>
+          <p class="gate-status" id="gateYtStatus" role="status"></p>
+          <span class="gate-hint">MP4 · WebM · MOV — drag &amp; drop works on this whole panel</span>
+        </div></div>
         <span class="live-dot" id="liveDot">Preview</span>
         <span class="fmt-tag" id="fmtTag">9:16</span>
         <button class="guides-toggle icon-btn has-tip tip-below" id="guidesToggle" type="button" aria-pressed="false" data-tip="Guides" aria-label="Toggle guides"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5H11V11H3.5zM13 3.5h7.5V11H13zM3.5 13H11v7.5H3.5zM13 13h7.5v7.5H13z"/></svg></button>
@@ -2003,13 +2141,14 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
       <button class="btn primary" id="serverClipBtn" type="button" style="width:100%;margin-top:12px;display:none">Auto clip from link (free server)</button>
       <p class="yt-status" id="serverStatus" role="status"></p>
       <details class="adv">
-        <summary><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h8M18 7.5h2M4 16.5h2M12 16.5h8"/><circle cx="15" cy="7.5" r="2.2"/><circle cx="9" cy="16.5" r="2.2"/></svg><span class="adv-txt"><strong>Server settings</strong><small>Free server for link auto-clip — tap to set it up</small></span><span class="adv-chev" aria-hidden="true">▾</span></summary>
+        <summary><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h8M18 7.5h2M4 16.5h2M12 16.5h8"/><circle cx="15" cy="7.5" r="2.2"/><circle cx="9" cy="16.5" r="2.2"/></svg><span class="adv-txt"><strong>Server settings</strong><small>Free server connected — link auto-clip is ready</small></span><span class="adv-chev" aria-hidden="true">▾</span></summary>
         <div class="adv-body">
           <label for="serverUrlInput">Server Worker URL</label>
           <div class="yt-row">
             <input type="url" id="serverUrlInput" aria-label="Server Worker URL" autocomplete="off" spellcheck="false">
             <button class="btn" id="serverUrlSaveBtn" type="button">Save</button>
           </div>
+          <p class="hint" id="serverHint" style="margin-top:8px">Connected: <span class="mono" id="serverActiveUrl">clipforge-worker.clipforge-tool.workers.dev</span> · Free AI ranking is <b id="aiStateTxt">on</b> — Auto clip labels moments and writes hooks with a free AI API (no key needed).</p>
         </div>
       </details>
     </div>
@@ -2108,6 +2247,8 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
         </div>
       </div>
       <div class="pad" style="padding-bottom:2px">
+        <button class="chip toggle icon-btn" id="aiToggleChip" type="button" aria-pressed="true" style="width:100%;justify-content:center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 6.6 6.6 1.9-6.6 1.9L12 19.5l-1.9-6.6L3.5 11l6.6-1.9z"/></svg><span class="btn-lbl">Free AI: On</span></button>
+        <p class="hint" id="aiStatus" style="margin:0">Free AI (Pollinations, no key) ranks the loudest moments, labels them and writes a hook for each clip. Off = loudness only.</p>
         <button class="btn accent icon-btn" id="analyzeBtn" style="width:100%"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M10.5 3a7.5 7.5 0 1 0 4.7 13.5l4 4 1.5-1.5-4-4A7.5 7.5 0 0 0 10.5 3zm0 2.2a5.3 5.3 0 1 1 0 10.6 5.3 5.3 0 0 1 0-10.6z"/></svg><span class="btn-lbl">Find moments</span></button>
         <button class="btn primary icon-btn" id="autoClipsBtn" style="width:100%"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 6.6 6.6 1.9-6.6 1.9L12 19.5l-1.9-6.6L3.5 11l6.6-1.9z"/></svg><span class="btn-lbl">Top 3 clips</span></button>
         <button class="btn icon-btn" id="findMoreBtn" style="width:100%;display:none"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M10.5 3a7.5 7.5 0 1 0 4.7 13.5l4 4 1.5-1.5-4-4A7.5 7.5 0 0 0 10.5 3zm0 2.2a5.3 5.3 0 1 1 0 10.6 5.3 5.3 0 0 1 0-10.6z"/></svg><span class="btn-lbl">Find more clips</span></button>
@@ -2411,10 +2552,17 @@ var musicBuffer=null, musicName='', musicVol=35, musicArrayBuf=null;
 var lastPicked=[], lastDur=0, hasVideo=false, guidesOn=false, safeOn=false;
 var clipLength=30;
 /* Server Auto clip — Cloudflare Worker URL (free server).
-   Paste your deployed Worker URL here OR set it in the Server Worker URL
-   field in the Source step (saved on this device). The placeholder below
-   is replaced once you deploy your own Worker. */
-var SERVER_WORKER_URL_DEFAULT='https://clipforge-worker.YOUR_SUBDOMAIN.workers.dev';
+   The deployed ClipForge Worker is baked in as the default, so link
+   Auto clip works out of the box with no setup. A URL saved in the
+   Server Worker URL field (this device) still overrides it. */
+var SERVER_WORKER_URL_DEFAULT='https://clipforge-worker.clipforge-tool.workers.dev';
+/* Free AI — Pollinations text API: free, no API key, no sign-up.
+   Used to rank the loudness peaks, label them and write a hook for
+   each auto clip. If it is unreachable, Auto clip falls back to the
+   plain loudness ranking — clips are never blocked by the AI. */
+var FREE_AI_URL='https://text.pollinations.ai/openai';
+var aiEnabled=true;
+try{ aiEnabled=localStorage.getItem('clipforge_ai')!=='off'; }catch(e){}
 var serverPollTimer=null;
 var clipStyle='hype', hookText='', clipTitle='', clipSubtitle='';
 var STYLE_LABELS={hype:'Hype',pro:'Pro analysis',meme:'Meme culture'};
@@ -2567,11 +2715,14 @@ function getServerWorkerUrl(){
 function clearServerPoll(){ if(serverPollTimer){ clearInterval(serverPollTimer); serverPollTimer=null; } }
 function updateServerClipVisibility(){
   var btn=$('serverClipBtn'); if(!btn) return;
-  var hint=$('serverHint');
   var show=!!ytId && !videoFile;
   btn.style.display=show?'':'none';
-  if(hint) hint.style.display=show?'':'none';
   if(show){ setBtnText(btn,getServerWorkerUrl()?'Auto clip from link (free server)':'Server not set up yet'); }
+  var active=$('serverActiveUrl');
+  if(active){ var u=getServerWorkerUrl(); active.textContent=u?u.replace(/^https?:\/\//,''):'not set'; }
+  var aiTxt=$('aiStateTxt'); if(aiTxt) aiTxt.textContent=aiEnabled?'on':'off';
+  var aiChip=$('aiToggleChip');
+  if(aiChip){ aiChip.classList.toggle('active',aiEnabled); aiChip.setAttribute('aria-pressed',aiEnabled?'true':'false'); var lbl=aiChip.querySelector('.btn-lbl'); if(lbl) lbl.textContent=aiEnabled?'Free AI: On':'Free AI: Off'; }
 }
 function setServerStatus(msg,isErr){
   var el=$('serverStatus'); if(!el) return;
@@ -2614,7 +2765,7 @@ function handleServerFailed(msg){
   toast(text);
   var btn=$('serverClipBtn'); if(btn) btn.disabled=false;
 }
-function handleServerDone(data){
+async function handleServerDone(data){
   clearServerPoll();
   var items=serverClipItems(data);
   if(!items.length && data && (data.downloadUrl||data.download_url)){
@@ -2640,6 +2791,13 @@ function handleServerDone(data){
     made.push({id:Date.now()+Math.random()+idx,server:true,downloadUrl:dl,s:s,e:e,name:name,thumb:'',ratio:'',w:0,h:0,style:clipStyle,keep:true,mute:false,vol:80,fadeIn:0,fadeOut:0,voiceReduction:0,voiceAuto:false,captions:[]});
   });
   if(!made.length){ handleServerFailed('Server finished but no clips were returned'); return; }
+  if(aiEnabled){
+    setServerStatus('Server clips ready — Free AI hooks likh raha hai...');
+    try{
+      var hooks=await aiHooksForTimes(made.map(function(m){ return m.s; }));
+      made.forEach(function(m){ var hk=hooks[fmt(m.s)]; if(hk){ m.hook=hk; m.name=(m.name||'Server clip')+' · '+hk; } });
+    }catch(e){ /* hooks are a bonus — clips ship without them */ }
+  }
   renderServerMoments(made);
   for(var i=made.length-1;i>=0;i--){ clips.unshift(made[i]); }
   renderClips();
@@ -2648,9 +2806,11 @@ function handleServerDone(data){
   var btn=$('serverClipBtn'); if(btn) btn.disabled=false;
   var clEl=$('clipsList'); if(clEl) clEl.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+var serverJobStartedAt=0;
 function pollServerJob(workerUrl,jobId){
   clearServerPoll();
-  serverPollTimer=setInterval(function(){
+  serverJobStartedAt=Date.now();
+  var check=function(){
     fetch(workerUrl+'/api/job/'+encodeURIComponent(jobId)).then(function(r){
       return r.json().catch(function(){ return {}; }).then(function(data){ return {ok:r.ok,status:r.status,data:data}; });
     }).then(function(res){
@@ -2660,13 +2820,18 @@ function pollServerJob(workerUrl,jobId){
       if(status==='done'||status==='completed'||status==='complete'||status==='success'||status==='succeeded'||status==='finished'||data.done===true){ handleServerDone(data); return; }
       if(status==='failed'||status==='error'||status==='failure'||data.failed===true){ handleServerFailed(data.error||data.message||'Server job failed'); return; }
       if(!status && serverClipItems(data).length){ handleServerDone(data); return; }
-      if(data.message) setServerStatus(String(data.message));
-      else if(typeof data.progress!=='undefined') setServerStatus('Server par ban raha hai... '+data.progress);
-      else setServerStatus('Server par ban raha hai...');
+      var elapsed=Math.floor((Date.now()-serverJobStartedAt)/1000);
+      var base=(data.message?String(data.message):'Server par ban raha hai...');
+      setServerStatus(base+' · '+fmt(elapsed)+' elapsed · job '+jobId);
     }).catch(function(err){
-      handleServerFailed(err&&err.message?err.message:'Server se connect nahi ho saka');
+      /* One failed poll must not kill the job — GitHub Actions is
+         still running. Only surface it; the next tick retries. */
+      var elapsed=Math.floor((Date.now()-serverJobStartedAt)/1000);
+      setServerStatus('Server par ban raha hai... · '+fmt(elapsed)+' elapsed · job '+jobId);
     });
-  },20000);
+  };
+  check();
+  serverPollTimer=setInterval(check,5000);
 }
 function startServerClip(){
   var workerUrl=getServerWorkerUrl();
@@ -2695,20 +2860,24 @@ function startServerClip(){
       handleServerFailed(data.error||data.message||'Server did not return a job id');
       return;
     }
-    setServerStatus('Server par ban raha hai...');
+    setServerStatus('Job started · '+jobId+' — server par ban raha hai...');
     pollServerJob(workerUrl,jobId);
   }).catch(function(err){
     handleServerFailed(err&&err.message?err.message:'Server se connect nahi ho saka');
   });
 }
 (function initServerUrlField(){
-  try{ var saved=localStorage.getItem('clipforge_server_url'); if(saved) $('serverUrlInput').value=saved; }catch(e){}
+  var inp=$('serverUrlInput'); if(!inp) return;
+  var saved=''; try{ saved=localStorage.getItem('clipforge_server_url')||''; }catch(e){}
+  inp.value=saved||SERVER_WORKER_URL_DEFAULT;
+  inp.placeholder=SERVER_WORKER_URL_DEFAULT;
 })();
 var serverUrlSaveBtnEl=$('serverUrlSaveBtn');
 if(serverUrlSaveBtnEl) serverUrlSaveBtnEl.addEventListener('click',function(){
   var v=($('serverUrlInput').value||'').trim();
   try{ if(v) localStorage.setItem('clipforge_server_url',v); else localStorage.removeItem('clipforge_server_url'); }catch(e){}
-  toast(v?'Server URL saved':'Server URL cleared');
+  if(!v){ var inp2=$('serverUrlInput'); if(inp2) inp2.value=SERVER_WORKER_URL_DEFAULT; }
+  toast(v?'Server URL saved':'Server URL reset — free server connected');
   updateServerClipVisibility();
 });
 var serverClipBtnEl=$('serverClipBtn');
@@ -2716,8 +2885,8 @@ if(serverClipBtnEl) serverClipBtnEl.addEventListener('click',startServerClip);
 updateServerClipVisibility();
 
 fileInput.addEventListener('change',function(){loadFile(this.files[0]);});
-$('videoEmpty').addEventListener('click',function(){ fileInput.click(); });
-$('videoEmpty').addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); e.stopPropagation(); fileInput.click(); } });
+$('videoEmpty').addEventListener('click',function(e){ if(e.target.closest && e.target.closest('.gate-yt,.gate-chips,input,select,textarea')) return; fileInput.click(); });
+$('videoEmpty').addEventListener('keydown',function(e){ if(e.target.closest && e.target.closest('.gate-yt,.gate-chips,input,select,textarea')) return; if(e.key==='Enter'||e.key===' '){ e.preventDefault(); e.stopPropagation(); fileInput.click(); } });
 dropZone.addEventListener('dragover',function(e){e.preventDefault();});
 dropZone.addEventListener('drop',function(e){e.preventDefault(); if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);});
 document.addEventListener('dragover',function(e){e.preventDefault();});
@@ -3143,6 +3312,86 @@ $('musicRemoveBtn').addEventListener('click',function(){
 function startMusicPreview(){ var mp=$('musicPreview'); if(musicName&&mp.src){ mp.currentTime=0; mp.volume=musicVol/100; mp.play().catch(function(){}); } }
 function stopMusicPreview(){ var mp=$('musicPreview'); if(mp) mp.pause(); }
 
+/* ---------- FREE AI (Pollinations — no key, no sign-up) ---------- */
+function setAiStatus(msg){
+  var el=$('aiStatus'); if(el) el.textContent=msg;
+}
+function aiFetchJson(prompt,timeoutMs){
+  var ctrl=('AbortController' in window)? new AbortController():null;
+  var timer=ctrl? setTimeout(function(){ try{ ctrl.abort(); }catch(e){} },timeoutMs||25000):null;
+  return fetch(FREE_AI_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    signal:ctrl?ctrl.signal:undefined,
+    body:JSON.stringify({model:'openai',messages:[
+      {role:'system',content:'You are the moment-ranking AI inside a stream clipper. Reply with ONLY valid JSON, no markdown, no extra text.'},
+      {role:'user',content:prompt}
+    ]})
+  }).then(function(r){
+    if(timer) clearTimeout(timer);
+    if(!r.ok) throw new Error('AI HTTP '+r.status);
+    return r.json();
+  }).then(function(data){
+    var txt=data&&data.choices&&data.choices[0]&&data.choices[0].message?String(data.choices[0].message.content||''):'';
+    var m=txt.match(/\{[\s\S]*\}/);
+    if(!m) throw new Error('AI returned no JSON');
+    return JSON.parse(m[0]);
+  }).catch(function(e){ if(timer) clearTimeout(timer); throw e; });
+}
+function captionTextNear(t,len){
+  var out=[];
+  for(var i=0;i<captions.length;i++){ if(captions[i].t+CAP_DUR>t-2 && captions[i].t<t+len) out.push(captions[i].text); }
+  return out.join(' ').slice(0,220);
+}
+/* Ask the free AI to rank the loudness peaks, give each a short label
+   and a punchy hook. Mutates the picked objects (aiLabel/aiHook/aiWhy)
+   and returns them re-sorted best-first. Throws if the AI is down —
+   callers fall back to the loudness order. */
+async function aiRankMoments(picked,dur){
+  if(!aiEnabled||!picked.length) return picked;
+  var len=getClipLength();
+  var lines=picked.map(function(pk,i){
+    var w=clipWindow(pk.t,dur);
+    var cap=captionTextNear(w.s,len);
+    return (i+1)+'. start='+fmt(w.s)+' loudness='+Math.round(pk.v*100)+'%'+(cap?' speech="'+cap+'"':' speech="(no captions captured)"');
+  });
+  var prompt='A stream video is '+(dur?fmt(dur):'unknown length')+'. An audio scan found these loud moments (clip length '+len+'s each):\n'+lines.join('\n')+'\n\nPick the moments most likely to work as viral short clips (big reactions, funny or shocking beats beat plain loud game noise). Return JSON exactly like: {"moments":[{"n":1,"label":"Big reaction","hook":"HE LOST IT","viral":92}]} — one entry per moment, best first. "n" is the number from the list. label max 3 words. hook is a short uppercase on-screen hook, max 5 words, no quotes inside. viral is 0-100.';
+  var res=await aiFetchJson(prompt,30000);
+  var arr=(res&&res.moments)||[];
+  if(!arr.length) throw new Error('AI returned no moments');
+  var byN={};
+  arr.forEach(function(m){ var idx=parseInt(m&&m.n,10)-1; if(idx>=0&&idx<picked.length) byN[idx]=m; });
+  picked.forEach(function(pk,i){
+    var m=byN[i]; if(!m) return;
+    if(m.label) pk.aiLabel=String(m.label).slice(0,40);
+    if(m.hook) pk.aiHook=String(m.hook).replace(/["\n]/g,'').slice(0,60).toUpperCase();
+    var v=parseFloat(m.viral); if(isFinite(v)) pk.aiViral=Math.max(0,Math.min(100,Math.round(v)));
+  });
+  var ranked=arr.map(function(m){ return picked[parseInt(m&&m.n,10)-1]; }).filter(Boolean);
+  picked.forEach(function(pk){ if(ranked.indexOf(pk)===-1) ranked.push(pk); });
+  return ranked;
+}
+/* One AI pass for a batch of clips (used for server clips, where the
+   page has no local audio): returns a hook per clip start time. */
+async function aiHooksForTimes(times){
+  if(!aiEnabled||!times.length) return {};
+  var prompt='These are start times (mm:ss) of the top clips cut from a stream video: '+times.map(fmt).join(', ')+'. For each, write one short uppercase on-screen hook (max 5 words, hype style, no quotes). Return JSON exactly like: {"hooks":[{"t":"00:30","hook":"INSANE PLAY"}]} with one entry per time, t copied exactly.';
+  var res=await aiFetchJson(prompt,30000);
+  var out={};
+  ((res&&res.hooks)||[]).forEach(function(h){ if(h&&h.t&&h.hook) out[String(h.t)]=String(h.hook).replace(/["\n]/g,'').slice(0,60).toUpperCase(); });
+  return out;
+}
+var aiToggleChipEl=$('aiToggleChip');
+if(aiToggleChipEl) aiToggleChipEl.addEventListener('click',function(){
+  aiEnabled=!aiEnabled;
+  try{ localStorage.setItem('clipforge_ai',aiEnabled?'on':'off'); }catch(e){}
+  updateServerClipVisibility();
+  setAiStatus(aiEnabled?'Free AI on — Auto clip will rank moments, label them and write hooks.':'Free AI off — Auto clip uses loudness only.');
+  toast(aiEnabled?'Free AI connected':'Free AI off');
+});
+if(typeof updateServerClipVisibility==='function') updateServerClipVisibility();
+if(!aiEnabled) setAiStatus('Free AI off — Auto clip uses loudness only. Turn it on above for AI labels and hooks.');
+
 /* ---------- WAVEFORM + AI MOMENTS ---------- */
 var waveData=[];
 function drawWave(){
@@ -3248,6 +3497,7 @@ $('analyzeBtn').addEventListener('click', async function(){
   var btn=this; btn.disabled=true; setBtnText(btn,'Scanning…');
   try{
     var picked=await scanMoments();
+    if(picked.length&&aiEnabled){ setBtnText(btn,'AI ranking…'); await applyAiRanking(); }
     toast(picked.length? picked.length+' moments found' : 'No peaks found');
   }catch(err){ toast('Scan failed — audio could not be decoded (corrupt file or unsupported codec)'); }
   btn.disabled=false; setBtnText(btn,'Find moments');
@@ -3271,10 +3521,12 @@ function renderMoments(picked,dur){
   picked.forEach(function(pk){
     var w=clipWindow(pk.t,dur), s=w.s, e=w.e;
     var div=document.createElement('div'); div.className='mom-card'; div.setAttribute('role','button'); div.setAttribute('tabindex','0');
-    div.setAttribute('aria-label',labelFor(pk.v)+' at '+fmt(s));
+    div.setAttribute('aria-label',(pk.aiLabel||labelFor(pk.v))+' at '+fmt(s));
     var ph=document.createElement('div'); ph.className='mom-ph'; ph.textContent=fmt(s); div.appendChild(ph);
-    var b=document.createElement('b'); b.textContent=labelFor(pk.v); div.appendChild(b);
-    var span=document.createElement('span'); span.textContent=fmt(s)+' → '+fmt(e)+' · ~'+Math.round(Math.min(98,58+pk.v*40))+'%'; div.appendChild(span);
+    var b=document.createElement('b'); b.textContent=pk.aiLabel||labelFor(pk.v); div.appendChild(b);
+    var pct=(typeof pk.aiViral==='number')? pk.aiViral : Math.round(Math.min(98,58+pk.v*40));
+    var span=document.createElement('span'); span.textContent=fmt(s)+' → '+fmt(e)+' · '+(typeof pk.aiViral==='number'?'AI ':'~')+pct+'%'; div.appendChild(span);
+    if(pk.aiHook){ var hk=document.createElement('span'); hk.textContent='“'+pk.aiHook+'”'; hk.style.color='var(--accent-ink)'; div.appendChild(hk); }
     var score=document.createElement('div'); score.className='score'; score.innerHTML='<i style="width:'+Math.round(pk.v*100)+'%"></i>'; div.appendChild(score);
     function use(){
       list.querySelectorAll('.mom-card').forEach(function(x){ x.classList.remove('active'); });
@@ -3321,13 +3573,35 @@ $('addClipBtn').addEventListener('click', async function(){
 });
 async function makeTopClips(){
   var keepT=video.currentTime; video.pause();
-  var top=lastPicked.slice().sort(function(a,b){return b.v-a.v}).slice(0,3).sort(function(a,b){return a.t-b.t});
+  var aiTop=lastPicked.filter(function(p){ return typeof p.aiViral==='number'; });
+  var top;
+  if(aiTop.length>=3){ top=aiTop.slice().sort(function(a,b){return b.aiViral-a.aiViral;}).slice(0,3).sort(function(a,b){return a.t-b.t;}); }
+  else { top=lastPicked.slice().sort(function(a,b){return b.v-a.v;}).slice(0,3).sort(function(a,b){return a.t-b.t;}); }
+  var prevHook=hookText, prevHookInput=$('hookInput')?$('hookInput').value:null;
   for(var i=0;i<top.length;i++){
     var w=clipWindow(top[i].t,lastDur), s=w.s, e=w.e;
+    if(top[i].aiHook){ hookText=top[i].aiHook; var hi=$('hookInput'); if(hi) hi.value=hookText; if(typeof updateOverlays==='function') updateOverlays(); }
     await seekTo(s); addClip(s,e,settingsSnapshot(),captureThumb());
   }
+  hookText=prevHook; var hi2=$('hookInput'); if(hi2&&prevHookInput!==null) hi2.value=prevHookInput;
+  if(typeof updateOverlays==='function') updateOverlays();
   await seekTo(keepT);
   return top.length;
+}
+/* Run the free AI over the current peaks. Never throws: on any AI
+   failure it keeps the loudness order and says so in the AI line. */
+async function applyAiRanking(){
+  if(!aiEnabled||!lastPicked.length) return false;
+  setAiStatus('Free AI ranking moments…');
+  try{
+    var ranked=await aiRankMoments(lastPicked.slice(),lastDur);
+    lastPicked=ranked; renderMoments(lastPicked,lastDur);
+    setAiStatus('Free AI ranked '+ranked.length+' moments — labels and hooks are AI picks. Top 3 clips uses the AI order.');
+    return true;
+  }catch(e){
+    setAiStatus('Free AI did not answer — Auto clip used the loudness ranking instead. Clips still work.');
+    return false;
+  }
 }
 $('autoClipsBtn').addEventListener('click', async function(){
   if(!videoFile){toast('Load a video first'); return;}
@@ -3335,12 +3609,15 @@ $('autoClipsBtn').addEventListener('click', async function(){
   try{
     if(!lastPicked.length) await scanMoments();
     if(!lastPicked.length){ toast('No moments to auto-clip'); }
-    else { setBtnText(btn,'Making clips…'); var n=await makeTopClips(); toast(n+' clips created'); }
+    else { setBtnText(btn,'AI ranking…'); await applyAiRanking(); setBtnText(btn,'Making clips…'); var n=await makeTopClips(); toast(n+' clips created'); }
   }catch(err){ toast('Scan failed — audio could not be decoded (corrupt file or unsupported codec)'); }
   btn.disabled=false; setBtnText(btn,'Top 3 clips');
 });
 $('autoClipBtn').addEventListener('click', async function(){
-  if(!videoFile){ toast('Load a video file first'); if(ytId){ var dz=$('dropZone'); if(dz) dz.scrollIntoView({behavior:'smooth',block:'center'}); } return; }
+  if(!videoFile){
+    if(ytId){ toast('Link loaded — free server se Auto clip bana raha hoon'); startServerClip(); return; }
+    toast('Load a video file first'); return;
+  }
   var btn=this; btn.disabled=true;
   var prog=$('exportProg'), bar=prog.querySelector('i');
   prog.style.display='block'; bar.style.width='3%';
@@ -3353,7 +3630,9 @@ $('autoClipBtn').addEventListener('click', async function(){
     });
     if(!picked.length){ toast('No loud moments found'); }
     else {
-      setBtnText(btn,'Making clips…'); bar.style.width='88%';
+      setBtnText(btn,'AI ranking…'); bar.style.width='84%';
+      await applyAiRanking();
+      setBtnText(btn,'Making clips…'); bar.style.width='92%';
       var n=await makeTopClips();
       bar.style.width='100%';
       toast(n+' clips added to My Clips');
@@ -5117,6 +5396,74 @@ renderTimeline(true);
     });
     var exp=bar.querySelector('.cf-export');
     if(exp) bar.insertBefore(rb,exp); else bar.appendChild(rb);
+  }
+})();
+</script>
+<script>
+/* ---------- DESKTOP PREVIEW GATE ----------
+   The big empty-state prompt inside the Preview stage:
+   · its YouTube row drives the Media panel's real link box
+     (same input value, same loader, same status line);
+   · its DROP VIDEO button label follows the current format;
+   · dropping a file anywhere on the empty stage loads it.
+   Everything here only acts while the stage is .no-video —
+   once a video loads the gate is display:none with it. */
+(function(){
+  function $(id){ return document.getElementById(id); }
+  var gateIn=$('gateYtInput'), gateBtn=$('gateYtLoadBtn'), gateStatus=$('gateYtStatus');
+  var ytIn=$('ytInput'), ytStatus=$('ytStatus'), stage=$('stage'), gateFmt=$('gateFmtLabel');
+  function gateLoad(){
+    if(!gateIn || !ytIn) return;
+    ytIn.value=gateIn.value;
+    if(typeof loadYouTube==='function') loadYouTube();
+    syncStatus();
+  }
+  function syncStatus(){
+    if(!gateStatus || !ytStatus) return;
+    var t=ytStatus.textContent||'';
+    gateStatus.textContent=t;
+    gateStatus.className='gate-status'+(ytStatus.classList.contains('err')?' err':(ytStatus.classList.contains('ok')?' ok':''));
+  }
+  if(gateBtn) gateBtn.addEventListener('click',function(e){ e.stopPropagation(); gateLoad(); });
+  if(gateIn){
+    gateIn.addEventListener('click',function(e){ e.stopPropagation(); });
+    gateIn.addEventListener('keydown',function(e){
+      e.stopPropagation();
+      if(e.key==='Enter'){ e.preventDefault(); gateLoad(); }
+    });
+    gateIn.addEventListener('paste',function(e){ e.stopPropagation(); setTimeout(gateLoad,60); });
+    var gateTimer=null;
+    gateIn.addEventListener('input',function(){
+      if(ytIn) ytIn.value=gateIn.value;
+      clearTimeout(gateTimer); gateTimer=setTimeout(gateLoad,600);
+    });
+  }
+  /* Format label on the DROP VIDEO button follows the Media
+     panel's drop-zone label (kept current by applyFormat) */
+  function syncFmt(){
+    if(!gateFmt) return;
+    var dl=$('dropFmtLabel');
+    if(dl && dl.textContent) gateFmt.textContent=dl.textContent;
+  }
+  syncFmt(); syncStatus();
+  setInterval(function(){ syncFmt(); syncStatus(); },600);
+  /* Drag & drop onto the empty stage itself */
+  if(stage){
+    ['dragenter','dragover'].forEach(function(ev){
+      stage.addEventListener(ev,function(e){
+        if(!stage.classList.contains('no-video')) return;
+        e.preventDefault(); stage.classList.add('cf-drag');
+      });
+    });
+    ['dragleave','drop'].forEach(function(ev){
+      stage.addEventListener(ev,function(){ stage.classList.remove('cf-drag'); });
+    });
+    stage.addEventListener('drop',function(e){
+      if(!stage.classList.contains('no-video')) return;
+      e.preventDefault();
+      var f=e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f && typeof loadFile==='function') loadFile(f);
+    });
   }
 })();
 </script>
