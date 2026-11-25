@@ -97,6 +97,22 @@ button{min-height:40px;cursor:pointer}
 .fmt-open[aria-expanded="true"] .fmt-open-chev{transform:rotate(180deg)}
 .fmt-quick{align-self:center;white-space:nowrap}
 .fmt-pop{border-top:1px solid var(--line)}
+.fmt-size-wrap{flex:1 1 220px;min-width:0;display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line-strong);border-radius:10px;padding:8px 14px;min-height:52px}
+.fmt-size-wrap label{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);flex-shrink:0}
+.fmt-select{flex:1 1 auto;min-width:0;background:transparent;border:0;color:var(--text);font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;padding:6px 2px}
+.fmt-select:focus{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.fmt-select option{background:var(--panel);color:var(--text);font-weight:600}
+.fmt-bar .badge{align-self:center}
+.src-hint{margin:0;padding:14px 20px 0;color:var(--muted);font-size:13.5px;line-height:1.5}
+.src-hint b{color:var(--text)}
+.adv{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.adv summary{cursor:pointer;color:var(--muted);font-size:12.5px;font-weight:700;letter-spacing:.04em;list-style:none}
+.adv summary:hover{color:var(--text)}
+.adv summary::-webkit-details-marker{display:none}
+.adv summary::before{content:"▸ "}
+.adv[open ] summary::before{content:"▾ "}
+.adv .adv-body{margin-top:10px}
+.adv:not([open ])>.adv-body{display:none}
 .fmt-pop-h{padding:14px 20px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}
 .fmt-pop-h h2{font-family:"Anton","Inter",sans-serif;font-size:19px;font-weight:400;letter-spacing:.04em;text-transform:uppercase;margin:0;line-height:1.2}
 .fmt-pop-h h2 .num{color:var(--accent);font-family:"JetBrains Mono",monospace;font-size:12.5px;font-weight:600;margin-right:8px}
@@ -755,6 +771,15 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   body.layout-resizing-x,body.layout-resizing-x *{cursor:col-resize !important;user-select:none !important}
 }
 
+/* Restored panel chrome: grips sit at the start of each panel header */
+@media(min-width:1024px){
+  .card-h .panel-grip{margin-right:8px}
+  .insp-panel .card-h{justify-content:flex-start}
+  .layout-btn{flex:0 0 auto;white-space:nowrap}
+  .layout-btn .ic{width:15px;height:15px}
+}
+.card.drop-target{outline:2px solid var(--accent);outline-offset:-2px}
+
 /* ---------- SCREENS (desktop): one clean full screen per step, no inner scroll ---------- */
 @media(min-width:1024px){
   .live-step b{color:var(--accent)}
@@ -798,9 +823,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
 
   /* 04 / REFRAME — composition and inspector */
   .wrap[data-screen="reframe"]{grid-template-areas:"format inspector";grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
-  .wrap[data-screen="reframe"] .format-card{display:block;grid-area:format;height:100%;overflow:hidden}
-  .wrap[data-screen="reframe"] .format-card .fmt-pop{display:block !important}
-  .wrap[data-screen="reframe"] .format-card .fmt-options{grid-template-columns:repeat(3,1fr)}
+  .wrap[data-screen="reframe"] .format-card{display:block;grid-area:format;height:auto;align-self:start;overflow:hidden}
   .wrap[data-screen="reframe"] #secInspector{display:block;grid-area:inspector;height:100%;overflow:hidden}
 
   /* 05 / TEMPLATE — clip style and text overlay */
@@ -809,12 +832,10 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   .wrap[data-screen="template"] .insp-panel[data-panel="text"]{display:block;grid-area:text;height:100%;overflow:hidden}
 
   /* 06 / EXPORT — output preview, my clips and toolkit */
-  .wrap[data-screen="export"]{grid-template-areas:"export clips" "export toolkit";grid-template-columns:400px minmax(0,1fr);grid-template-rows:minmax(0,1fr) 178px}
+  .wrap[data-screen="export"]{grid-template-areas:"export clips";grid-template-columns:400px minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
   .wrap[data-screen="export"] #secExport{display:block;grid-area:export;height:100%;overflow:hidden}
   .wrap[data-screen="export"] .clips-strip{display:flex;flex-direction:column;grid-area:clips;height:100%;min-height:0;overflow:hidden}
   .wrap[data-screen="export"] .clips-strip .list{flex:1 1 auto;flex-direction:row;flex-wrap:wrap;align-content:flex-start;overflow:hidden}
-  .wrap[data-screen="export"] #secToolkit{display:flex;flex-direction:column;grid-area:toolkit;height:100%;min-height:0;overflow:hidden}
-  .wrap[data-screen="export"] .tk-grid{overflow:hidden;align-content:start}
 
   /* Panel move/resize inside a screen: grip swaps panels, edges resize the grid */
   .wrap .card-h>div{flex:1 1 auto;min-width:0}
@@ -858,36 +879,659 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   .wrap[data-screen="captions"] .insp-panel[data-panel="sound"]{display:block}
   .wrap[data-screen="captions"] .insp-panel[data-panel="captions"]{display:block}
   .wrap[data-screen="reframe"] .format-card{display:block}
-  .wrap[data-screen="reframe"] .format-card .fmt-pop{display:block !important}
   .wrap[data-screen="reframe"] #secInspector{display:block}
   .wrap[data-screen="template"] .insp-panel[data-panel="style"]{display:block}
   .wrap[data-screen="template"] .insp-panel[data-panel="text"]{display:block}
   .wrap[data-screen="export"] #secExport{display:block}
   .wrap[data-screen="export"] .clips-strip{display:block}
-  .wrap[data-screen="export"] #secToolkit{display:block}
+}
+</style>
+<style id="cf-editor-style">
+/* ============================================================
+   CAPCUT-STYLE EDITOR — one screen, no steps.
+   Preview always on top, timeline always at the bottom,
+   one tool panel at a time in the side rail / bottom sheet.
+   The old 6-step bar, mobile view tabs, panel grips and the
+   layout Reset button are retired (clutter the user rejected).
+   ============================================================ */
+.stepbar{display:none !important}
+.mobile-tabs{display:none !important}
+.panel-grip,.resize-edge-b,.resize-edge-t,.resize-edge-r{display:none !important}
+.insp-tabs{display:none !important}
+
+/* ---- Tool bars ---- */
+.cf-bar{display:none}
+.cf-mobilebar{display:none}
+.cf-tab{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:10px;padding:7px 10px;min-height:52px;min-width:64px;cursor:pointer;font-weight:700;font-size:11.5px;letter-spacing:.02em;line-height:1.1}
+.cf-tab .ic{width:21px;height:21px}
+.cf-tab:hover{color:var(--text)}
+.cf-tab.active{color:#fff;background:var(--accent-soft);border-color:rgba(255,46,136,.55)}
+.cf-export{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#ff5da6,#e0007a);color:#fff;border:0;border-radius:10px;padding:0 22px;min-height:44px;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 14px rgba(224,0,122,.32)}
+.cf-export:hover{opacity:.9}
+.cf-export .ic{width:18px;height:18px}
+/* Stage toggles are useless — and float over the "No video" message —
+   until a video is actually loaded */
+.stage.no-video .guides-toggle{display:none !important}
+
+/* ---- Empty state: CapCut-clean. Until a video is loaded the preview
+   card is ONLY a stage with one Upload button — no "No source loaded"
+   line, no Speed selector, no hook/caption bar, no SOURCE range line,
+   no 00:00 transport controls, no floating format badge. All of it
+   comes back on its own the moment a video loads (the stage loses
+   its .no-video class). ---- */
+.stage.no-video .fmt-tag{display:none !important}
+.preview-card:has(.stage.no-video) .src-label,
+.preview-card:has(.stage.no-video) .speed-wrap,
+.preview-card:has(.stage.no-video) .caption-bar,
+.preview-card:has(.stage.no-video) .prog-meta,
+.preview-card:has(.stage.no-video) .controls{display:none !important}
+.preview-card:has(.stage.no-video) .video-empty .btn{min-height:52px;padding:13px 28px;font-size:16px}
+/* Upload box: dead-centre in the stage on every viewport */
+.video-empty{place-items:center}
+.video-empty>div{display:flex;justify-content:center;width:100%}
+.video-empty .btn{margin-inline:auto;max-width:100%;box-sizing:border-box}
+
+/* ---- Server settings: a real tappable tool button, not a line of
+   text nobody clicks. Full-width bordered row, sliders icon, plain
+   "what is this" sub-line and a chevron that flips when open. ---- */
+.adv{margin-top:14px;border-top:none;padding-top:0}
+.adv summary{display:flex;align-items:center;gap:11px;min-height:56px;padding:10px 14px;background:var(--panel);border:1px solid var(--line-strong);border-radius:10px;color:var(--text);font-size:14.5px;font-weight:700;letter-spacing:0;list-style:none;cursor:pointer}
+.adv summary:hover{border-color:var(--accent)}
+.adv summary::before{content:none !important}
+.adv summary::-webkit-details-marker{display:none}
+.adv summary .ic{width:21px;height:21px;color:var(--accent);flex-shrink:0}
+.adv-txt{display:flex;flex-direction:column;gap:1px;flex:1 1 auto;min-width:0;text-align:left}
+.adv-txt strong{font-size:14.5px;font-weight:700;line-height:1.25}
+.adv-txt small{font-size:12px;font-weight:500;color:var(--muted);line-height:1.35}
+.adv-chev{color:var(--accent);font-size:14px;flex-shrink:0;transition:transform .18s ease}
+.adv[open ] summary{border-color:var(--accent);background:var(--accent-soft)}
+.adv[open ] .adv-chev{transform:rotate(180deg)}
+.adv .adv-body{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--panel2)}
+
+/* ---- Desktop: preview left, tool rail right, timeline full-width bottom ---- */
+@media(min-width:1024px){
+  .topbar{flex:0 0 50px;padding:2px 16px;align-items:center}
+  .topbar h1{font-size:24px}
+  .brand-mark{width:30px;height:30px;border-radius:8px}
+  .brand-row{margin-top:0}
+  .cf-bar{display:flex;flex:0 0 auto;align-items:center;gap:4px;width:100%;padding:4px 16px 6px;background:transparent}
+  .cf-bar .cf-spacer{flex:1 1 auto}
+  .cf-mobilebar{display:none !important}
+  .wrap[data-screen="editor"]{display:grid;grid-template-columns:minmax(0,1fr) 374px;grid-template-rows:minmax(0,1fr) minmax(0,1fr) 226px;grid-template-areas:"program railA" "program railB" "timeline timeline";gap:10px;padding:6px 16px 10px;overflow:hidden}
+  .wrap[data-screen="editor"] .mainrow,.wrap[data-screen="editor"] .col{display:contents}
+  /* tool panels: hidden until their tool is picked */
+  .wrap[data-screen="editor"] #secCapture,.wrap[data-screen="editor"] #secMoments,.wrap[data-screen="editor"] #secInspector,.wrap[data-screen="editor"] .format-card,.wrap[data-screen="editor"] .live-card,.wrap[data-screen="editor"] .insp-panel,.wrap[data-screen="editor"] #secExport,.wrap[data-screen="editor"] .clips-strip{display:none !important}
+  /* preview: always visible */
+  .wrap[data-screen="editor"] #secProgram{display:flex !important;flex-direction:column;grid-area:program;min-height:0;overflow:hidden}
+  .wrap[data-screen="editor"] .preview-card .stage-wrap{flex:1 1 auto;min-height:0;display:grid;place-items:center;margin:10px 14px 0;padding:10px}
+  .wrap[data-screen="editor"] .preview-card .stage{height:100%;width:auto;max-width:100%;margin:0 auto;justify-self:center}
+  .wrap[data-screen="editor"] .preview-card .caption-bar{margin:10px 14px 0}
+  .wrap[data-screen="editor"] .preview-card .caption-bar input{font-size:24px}
+  .wrap[data-screen="editor"] .preview-card .prog-meta{padding:8px 14px 0}
+  .wrap[data-screen="editor"] .preview-card .controls{padding:10px 14px 12px}
+  .wrap[data-screen="editor"] .preview-card .card-h{padding:12px 14px 0}
+  /* timeline: always visible, full width */
+  .wrap[data-screen="editor"] #secTimeline{display:flex !important;flex-direction:column;grid-area:timeline;min-height:0;overflow:hidden}
+  .wrap[data-screen="editor"] .tl-body{flex:1 1 auto;min-height:0}
+  .wrap[data-screen="editor"] .tl-side{max-height:none;overflow-y:auto}
+  /* rail panels */
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture{display:block !important;grid-column:2;grid-row:1/3;min-height:0;overflow-y:auto}
+  .wrap[data-screen="editor"][data-tool="cut"] #secMoments{display:flex !important;flex-direction:column;grid-column:2;grid-row:1/3;min-height:0;overflow:hidden}
+  .wrap[data-screen="editor"][data-tool="cut"] #momentsList{overflow-y:auto;min-height:0}
+  .wrap[data-screen="editor"][data-tool="captions"] .insp-panel[data-panel="captions"]{display:block !important;grid-column:2;grid-row:1/3;min-height:0;overflow-y:auto}
+  .wrap[data-screen="editor"][data-tool="audio"] .insp-panel[data-panel="sound"]{display:block !important;grid-column:2;grid-row:1/3;min-height:0;overflow-y:auto}
+  .wrap[data-screen="editor"][data-tool="text"] .insp-panel[data-panel="text"]{display:block !important;grid-column:2;grid-row:1/3;min-height:0;overflow-y:auto}
+  .wrap[data-screen="editor"][data-tool="style"] .insp-panel[data-panel="style"]{display:block !important;grid-column:2;grid-row:1/3;min-height:0;overflow-y:auto}
+  .wrap[data-screen="editor"][data-tool="size"] .format-card{display:block !important;grid-column:2;grid-row:1;align-self:start}
+  .wrap[data-screen="editor"][data-tool="size"] #secInspector{display:block !important;grid-column:2;grid-row:2;min-height:0;overflow-y:auto}
+  .wrap[data-screen="editor"][data-tool="live"] .live-card{display:flex !important;flex-direction:column;grid-column:2;grid-row:1/3;min-height:0;overflow-y:auto}
+  .wrap[data-screen="editor"][data-tool="live"] .live-grid{grid-template-columns:1fr;flex:1 1 auto;min-height:0}
+  .wrap[data-screen="editor"][data-tool="export"] #secExport{display:block !important;grid-column:2;grid-row:1;align-self:start}
+  .wrap[data-screen="editor"][data-tool="export"] .clips-strip{display:flex !important;flex-direction:column;grid-column:2;grid-row:2;min-height:0;overflow:hidden}
+  .wrap[data-screen="editor"][data-tool="export"] .clips-strip .list{flex:1 1 auto;min-height:0;overflow-y:auto}
+}
+
+/* ---- Mobile / tablet: preview on top, timeline under it, tool sheet, bottom tool bar ---- */
+@media(max-width:1023px){
+  .cf-bar{display:none !important}
+  /* Bottom bar: fixed 5-column grid, NO horizontal scroll — all 8 tools
+     plus Export are visible at a glance (row 1: Media Cut Captions Audio
+     Text · row 2: Style Size Live + Export spanning two columns) */
+  .cf-mobilebar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;align-items:stretch;flex:0 0 auto;background:var(--panel);border-top:1px solid var(--line-strong);padding:8px 8px calc(8px + env(safe-area-inset-bottom));z-index:30}
+  .cf-tools-scroll{display:contents}
+  .cf-mobilebar .cf-tab{min-width:0;width:100%;min-height:48px;padding:5px 2px;font-size:10.5px}
+  .cf-mobilebar .cf-tab .ic{width:20px;height:20px}
+  .cf-mobilebar .cf-tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .cf-mobilebar .cf-export{grid-column:span 2;width:100%;min-height:48px;padding:0 10px;font-size:14.5px;border-radius:10px;justify-content:center}
+  /* Compact header so the editor gets the room, not the brand block */
+  .topbar{padding:10px 12px 4px}
+  .topbar h1{font-size:24px}
+  .brand-mark{width:32px;height:32px;border-radius:8px}
+  .brand-row{gap:9px}
+  .wrap[data-screen="editor"]{display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;padding-bottom:10px}
+  .wrap[data-screen="editor"] .mainrow,.wrap[data-screen="editor"] .col{display:contents}
+  .wrap[data-screen="editor"] #secCapture,.wrap[data-screen="editor"] #secMoments,.wrap[data-screen="editor"] #secInspector,.wrap[data-screen="editor"] .format-card,.wrap[data-screen="editor"] .live-card,.wrap[data-screen="editor"] .insp-panel,.wrap[data-screen="editor"] #secExport,.wrap[data-screen="editor"] .clips-strip{display:none !important}
+  /* preview sits naturally at the top (no sticky card taller than the
+     screen sliding over the panels below), compact like CapCut */
+  .wrap[data-screen="editor"] #secProgram{display:block !important;order:1;position:static}
+  .wrap[data-screen="editor"] .preview-card .card-h{padding:10px 14px 0}
+  .wrap[data-screen="editor"] .preview-card .stage-wrap{margin:10px 12px 0;padding:8px;display:grid;place-items:center}
+  /* Size the stage by a WIDTH derived from the height budget times the
+     format's aspect ratio (applyFormat sets --cf-asp on the stage).
+     Capping max-height directly used to squash the 9:16 box into a
+     wide, square-ish frame that drifted off-centre; width-driven
+     sizing keeps the true ratio, and the grid wrapper plus auto
+     inline margins centre the box exactly in the stage area. */
+  .wrap[data-screen="editor"] .preview-card .stage{width:min(100%,calc(30vh * var(--cf-asp,.5625)));max-height:none;margin:0 auto;justify-self:center}
+  /* Empty state: the stage is just an upload button, so it stays short —
+     that also keeps the timeline's Trim inputs fully above the bottom
+     tool bar instead of straddling it */
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .stage{width:min(100%,calc(26vh * var(--cf-asp,.5625)))}
+  /* The Upload button must FIT inside the narrow portrait stage: icon
+     stacked over the label, tight padding, never wider than the frame */
+  .wrap[data-screen="editor"] .video-empty{padding:8px}
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .video-empty .btn{flex-direction:column;gap:5px;max-width:calc(100% - 4px);min-height:0;padding:12px 14px;font-size:15px;line-height:1.15;text-align:center;white-space:normal}
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .video-empty .btn span{white-space:normal;text-align:center}
+  .wrap[data-screen="editor"] .tl-tracks{gap:3px}
+  .wrap[data-screen="editor"] .tl-lane{min-height:22px}
+  .wrap[data-screen="editor"] .tl-body{gap:10px}
+  .wrap[data-screen="editor"] .preview-card .caption-bar,.wrap[data-screen="editor"] .preview-card .prog-meta{display:none}
+  .wrap[data-screen="editor"] .preview-card .controls{padding:10px 14px 12px}
+  /* no keyboard on a phone: the Space / I / O hint is dead space */
+  .wrap[data-screen="editor"] .preview-card .controls .hint{display:none}
+  /* transport: Play stretches, the three icon buttons stay compact */
+  .wrap[data-screen="editor"] .preview-card .controls .btn-row{flex-wrap:nowrap}
+  .wrap[data-screen="editor"] .preview-card .controls .btn-row .btn{flex:1 1 0;min-width:0}
+  .wrap[data-screen="editor"] .preview-card .controls .btn-row .btn.icon-only{flex:0 0 54px}
+  /* timeline right under the preview */
+  .wrap[data-screen="editor"] #secTimeline{display:block !important;order:2}
+  .wrap[data-screen="editor"] .tl-body{grid-template-columns:1fr}
+  .wrap[data-screen="editor"] .tl-side{max-height:none;overflow:visible}
+  /* the picked tool opens as one sheet under the timeline */
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture{display:block !important;order:3}
+  .wrap[data-screen="editor"][data-tool="cut"] #secMoments{display:block !important;order:3}
+  .wrap[data-screen="editor"][data-tool="captions"] .insp-panel[data-panel="captions"]{display:block !important;order:3}
+  .wrap[data-screen="editor"][data-tool="audio"] .insp-panel[data-panel="sound"]{display:block !important;order:3}
+  .wrap[data-screen="editor"][data-tool="text"] .insp-panel[data-panel="text"]{display:block !important;order:3}
+  .wrap[data-screen="editor"][data-tool="style"] .insp-panel[data-panel="style"]{display:block !important;order:3}
+  .wrap[data-screen="editor"][data-tool="size"] .format-card{display:block !important;order:3}
+  .wrap[data-screen="editor"][data-tool="size"] #secInspector{display:block !important;order:4}
+  .wrap[data-screen="editor"][data-tool="live"] .live-card{display:block !important;order:3}
+  .wrap[data-screen="editor"][data-tool="export"] #secExport{display:block !important;order:3}
+  .wrap[data-screen="editor"][data-tool="export"] .clips-strip{display:block !important;order:4}
+  /* ---- APP SHELL (CapCut / Edits style): the page itself never
+     scrolls like a website. Preview stays pinned on top, the timeline
+     sits in a bounded band and scrolls INSIDE itself, the open tool
+     panel is a bottom sheet that scrolls INSIDE itself, and the tool
+     bar stays fixed under everything. ---- */
+  .wrap[data-screen="editor"] #secProgram{flex:0 0 auto;width:100%}
+  .wrap[data-screen="editor"] #secTimeline{display:flex !important;flex-direction:column;flex:0 1 32%;min-height:112px;width:100%;overflow:hidden}
+  .wrap[data-screen="editor"] #secTimeline .tl-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+  .wrap[data-screen="editor"] .tl-side{max-height:none;overflow:visible}
+  /* single-panel tools: the sheet takes the rest of the screen and
+     scrolls internally */
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture,
+  .wrap[data-screen="editor"][data-tool="cut"] #secMoments,
+  .wrap[data-screen="editor"][data-tool="captions"] .insp-panel[data-panel="captions"],
+  .wrap[data-screen="editor"][data-tool="audio"] .insp-panel[data-panel="sound"],
+  .wrap[data-screen="editor"][data-tool="text"] .insp-panel[data-panel="text"],
+  .wrap[data-screen="editor"][data-tool="style"] .insp-panel[data-panel="style"],
+  .wrap[data-screen="editor"][data-tool="live"] .live-card{flex:1 1 auto;min-height:72px;width:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+  /* two-panel tools: first panel sizes to its content (scrolls if
+     needed), second panel takes the rest and scrolls internally */
+  .wrap[data-screen="editor"][data-tool="size"] .format-card,
+  .wrap[data-screen="editor"][data-tool="export"] #secExport{flex:0 1 auto;min-height:0;width:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+  .wrap[data-screen="editor"][data-tool="size"] #secInspector,
+  .wrap[data-screen="editor"][data-tool="export"] .clips-strip{flex:1 1 auto;min-height:72px;width:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+  /* timeline: slimmer label column so the lanes keep their width */
+  .wrap[data-screen="editor"] .tl-body{padding:10px 12px 12px}
+  .wrap[data-screen="editor"] .tl-ruler-row,.wrap[data-screen="editor"] .tl-track{grid-template-columns:52px minmax(0,1fr);gap:6px}
+  .wrap[data-screen="editor"] .tl-ph-wrap{left:58px}
+  .toast{bottom:136px}
+}
+@media(max-width:380px){
+  .cf-mobilebar .cf-tab{font-size:10px;min-height:46px}
+  .cf-mobilebar .cf-tab .ic{width:19px;height:19px}
+  .cf-mobilebar .cf-export{font-size:13.5px;min-height:46px}
+}
+</style>
+<style id="cf-mobile-v3">
+/* ============================================================
+   MOBILE V3 — why tools kept "hiding": preview + timeline +
+   tool sheet were THREE stacked, internally-scrolling boxes
+   fighting for one phone screen, so the open tool got crushed
+   into a sliver and the timeline's own scroll box hid the
+   tracks whenever Trim was scrolled into view (and vice
+   versa). Now, CapCut-style:
+   · Export lives in the header; the bottom bar is ONE row of
+     8 tools, all visible, nothing off the edge.
+   · The timeline is a fixed strip: header + all four lanes,
+     always fully on screen, never scrolls.
+   · Trim / Make clip / Clip length move into the Cut panel
+     (script below), so there is exactly ONE scrolling area —
+     the open tool's sheet, which gets every leftover pixel.
+   ============================================================ */
+.cf-export-top{display:none}
+@media(max-width:1023px){
+  /* Header: slim, Export on the right like CapCut */
+  .topbar{padding:8px 12px 2px;align-items:center}
+  .topbar h1{font-size:22px}
+  .brand-mark{width:30px;height:30px;border-radius:8px}
+  .cf-export-top{display:inline-flex;min-height:38px;padding:0 16px;font-size:14px;border-radius:9px}
+  .cf-export-top .ic{width:16px;height:16px}
+
+  /* Bottom bar: ONE row, all 8 tools at a glance, no Export block */
+  .cf-mobilebar{display:flex;gap:2px;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+  .cf-tools-scroll{display:flex;flex:1 1 auto;gap:2px;min-width:0}
+  .cf-mobilebar .cf-tab{flex:1 1 0;min-width:0;min-height:50px;padding:4px 1px;font-size:9.5px;letter-spacing:0;gap:2px}
+  .cf-mobilebar .cf-tab .ic{width:20px;height:20px}
+  .cf-mobilebar .cf-export{display:none !important}
+  .toast{bottom:78px}
+
+  /* Preview: compact header and stage so the sheet gets the room */
+  .wrap[data-screen="editor"] .preview-card .card-h{padding:8px 12px 0}
+  .wrap[data-screen="editor"] .preview-card .card-h h2{font-size:16px}
+  .wrap[data-screen="editor"] .preview-card .src-label{display:none}
+  .wrap[data-screen="editor"] .speed-wrap select{min-height:28px;padding:3px 6px;font-size:12px}
+  .wrap[data-screen="editor"] .preview-card .stage-wrap{margin:8px 10px 0;padding:6px}
+  .wrap[data-screen="editor"] .preview-card .stage{width:min(100%,calc(21vh * var(--cf-asp,.5625)))}
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .stage{width:min(100%,calc(22vh * var(--cf-asp,.5625)))}
+  .wrap[data-screen="editor"] .preview-card .controls{padding:8px 12px 10px}
+  .wrap[data-screen="editor"] .preview-card .controls input[type=range]{height:24px}
+
+  /* Timeline: a fixed strip — header + ruler + ALL four lanes,
+     fully visible at once, no internal scrolling, ever */
+  .wrap[data-screen="editor"] #secTimeline{flex:0 0 auto !important;min-height:0}
+  .wrap[data-screen="editor"] #secTimeline .card-h{padding:6px 12px 0}
+  .wrap[data-screen="editor"] #secTimeline .card-h h2{font-size:15px}
+  .wrap[data-screen="editor"] #secTimeline .badge{font-size:9.5px;padding:3px 7px}
+  .wrap[data-screen="editor"] #secTimeline .tl-body{display:block;flex:0 0 auto;padding:6px 10px 10px;overflow:visible}
+  .wrap[data-screen="editor"] .tl-tracks{gap:3px}
+  .wrap[data-screen="editor"] .tl-ruler{height:13px}
+  .wrap[data-screen="editor"] .tl-lane{min-height:23px}
+  .wrap[data-screen="editor"] .film-lane img{height:19px}
+  .wrap[data-screen="editor"] .wave-lane canvas#wave{height:23px}
+
+  /* The open tool is the ONE scrolling sheet and it takes all
+     the height the preview and timeline strip leave behind */
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture,
+  .wrap[data-screen="editor"][data-tool="cut"] #secMoments,
+  .wrap[data-screen="editor"][data-tool="captions"] .insp-panel[data-panel="captions"],
+  .wrap[data-screen="editor"][data-tool="audio"] .insp-panel[data-panel="sound"],
+  .wrap[data-screen="editor"][data-tool="text"] .insp-panel[data-panel="text"],
+  .wrap[data-screen="editor"][data-tool="style"] .insp-panel[data-panel="style"],
+  .wrap[data-screen="editor"][data-tool="live"] .live-card,
+  .wrap[data-screen="editor"][data-tool="size"] #secInspector,
+  .wrap[data-screen="editor"][data-tool="export"] .clips-strip{flex:1 1 auto;min-height:0}
+  .wrap[data-screen="editor"][data-tool="size"] .format-card,
+  .wrap[data-screen="editor"][data-tool="export"] #secExport{flex:0 1 auto;min-height:0}
+
+  /* Trim block, relocated into the Cut sheet by the script below:
+     a normal full-width section at the end of the panel — every
+     control reachable by scrolling the one sheet */
+  #secMoments .tl-side{max-height:none;overflow:visible;display:flex;flex-direction:column;gap:10px;margin:2px 14px 16px;padding:14px 0 0;border-top:1px solid var(--line);padding-right:0}
+  #secMoments .tl-side .sec{border-top:none;margin-top:0;padding-top:0}
+  #secMoments .tl-side .ctl-row{grid-template-columns:52px 1fr 44px}
+}
+@media(max-width:380px){
+  .cf-mobilebar .cf-tab{font-size:9px;min-height:48px}
+  .cf-mobilebar .cf-tab .ic{width:19px;height:19px}
+}
+</style>
+<style id="cf-mobile-v4">
+/* ============================================================
+   MOBILE V4 — the tool bar is ICONS ONLY now, and nothing in
+   the app shell shows a scrollbar. The icon + text tabs kept
+   squeezing until "Captions" truncated to "Capti…" and the
+   sheet's scrollbar sat on the right edge like a website.
+   CapCut / Edits run icon toolbars with no visible scrollbars:
+   · all 8 tools are bare icons, one row, nothing cut off,
+     nothing to scroll — the active tool is the pink pill;
+   · the open tool's sheet still scrolls by touch when a panel
+     is tall, but no scrollbar is ever drawn, anywhere.
+   Tool names stay on the buttons as aria-labels.
+   ============================================================ */
+@media(max-width:1023px){
+  /* Icon-only bottom bar */
+  .cf-mobilebar .cf-tab span{display:none}
+  .cf-mobilebar .cf-tab{min-height:56px;padding:6px 2px;border-radius:12px}
+  .cf-mobilebar .cf-tab .ic{width:26px;height:26px}
+  .cf-mobilebar .cf-tab.active{color:#fff;background:var(--accent-soft);border-color:rgba(255,46,136,.6)}
+  /* No visible scrollbars inside the editor shell */
+  .wrap[data-screen="editor"] *{scrollbar-width:none !important}
+  .wrap[data-screen="editor"] ::-webkit-scrollbar{width:0 !important;height:0 !important;display:none}
+  .toast{bottom:88px}
+}
+@media(max-width:380px){
+  .cf-mobilebar .cf-tab{min-height:52px}
+  .cf-mobilebar .cf-tab .ic{width:24px;height:24px}
+}
+</style>
+<style id="cf-mobile-v5">
+/* ============================================================
+   MOBILE V5 — DROP VIDEO was buried in the Media sheet's
+   scroll. The sheet stacks heading + hint + the whole YouTube
+   box + Server settings BEFORE the drop zone, so on a phone
+   "Drop video" and "Auto clip" sat ~500px down inside the one
+   scrolling sheet and the user had to scroll the tool just to
+   add a file. Now the Media sheet itself does NOT scroll:
+   · DROP VIDEO is a compact fixed row at the TOP of the sheet
+     — always on screen, never in any scroll;
+   · AUTO CLIP is pinned at the BOTTOM of the sheet — always
+     on screen;
+   · only the middle (YouTube link + Server settings) scrolls
+     internally, by touch, with no visible scrollbar;
+   · the hint paragraph is dropped on mobile (clutter).
+   Desktop keeps the original scrolling rail, untouched.
+   ============================================================ */
+@media(max-width:1023px){
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture{display:flex !important;flex-direction:column;overflow:hidden !important}
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture .card-h{flex:0 0 auto;order:0;padding:10px 12px 0}
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture .card-h h2{font-size:16px}
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture .src-hint{display:none}
+  /* Drop video: fixed, first, one compact row */
+  .wrap[data-screen="editor"][data-tool="media"] #dropZone{order:1;flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:9px;margin:9px 12px 0;padding:11px 12px;min-height:48px}
+  .wrap[data-screen="editor"][data-tool="media"] #dropZone strong{display:inline;font-size:15px}
+  .wrap[data-screen="editor"][data-tool="media"] #dropZone span{display:inline;margin-top:0;font-size:13px}
+  /* Middle link box: the ONLY scrolling part of this sheet */
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture .yt-box{order:2;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;margin:9px 12px 0;padding:11px 12px}
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture .yt-box>label{margin-bottom:7px}
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture .adv{margin-top:9px}
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture .adv summary{min-height:48px;padding:8px 12px}
+  /* Auto clip: pinned to the sheet's bottom edge, always visible */
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture .autoclip-wrap{order:3;flex:0 0 auto;padding:9px 12px 11px !important}
+  .wrap[data-screen="editor"][data-tool="media"] #autoClipBtn{min-height:48px !important;font-size:16px !important}
+}
+</style>
+<style id="cf-mobile-v6">
+/* ============================================================
+   MOBILE V6 — the circled complaint: in the Media sheet the
+   YouTube box was a NESTED scroll box, so its own content
+   overflowed and the "Server settings" tool button rendered
+   half-clipped at the box's bottom edge — a tool hiding
+   inside a scroll area inside a card, wrapped in two layers
+   of borders (the "cluster"). Root cause: Preview + Timeline
+   ate the screen first and left the sheet a sliver. Now,
+   while the Media tool is open:
+   · with no video loaded yet, the Timeline collapses to its
+     header strip (its four lanes are empty decoration in
+     that state) and the empty upload stage shrinks — the
+     sheet gets the freed ~160px, so DROP VIDEO, the link
+     row, Server settings and Auto clip ALL fit at once;
+   · the YouTube box loses its box: no border, no background,
+     no inner scroll clipping — link row and the Server
+     settings button sit as plain full rows in the sheet.
+   Once a video loads, the timeline and full stage return.
+   ============================================================ */
+@media(max-width:1023px){
+  /* No video yet + Media tool: timeline is just its header strip */
+  .wrap[data-screen="editor"][data-tool="media"]:has(.stage.no-video) #secTimeline{flex:0 0 auto !important}
+  .wrap[data-screen="editor"][data-tool="media"]:has(.stage.no-video) #secTimeline .tl-body{display:none !important}
+  /* Smaller empty stage while picking media (it is only an Upload button) */
+  .wrap[data-screen="editor"][data-tool="media"] .preview-card:has(.stage.no-video) .stage{width:min(100%,calc(17vh * var(--cf-asp,.5625)))}
+  /* Flatten the YouTube box: rows, not a box inside the card */
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture .yt-box{background:transparent;border:none;padding:6px 2px 0;margin-top:8px}
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture .yt-box>label{font-size:12px;margin-bottom:7px}
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture .adv{margin-top:10px}
+}
+</style>
+<style id="cf-mobile-v7">
+/* ============================================================
+   MOBILE V7 — rebuilt from the mobile-editor research report
+   (section 6 build rules). This block REPLACES the v3–v6
+   patch stack on phones; desktop is untouched.
+   · Fixed app shell: header 56 / preview / timeline 118 /
+     one tool panel / bottom bar 64. The page never scrolls,
+     and NO panel scrolls either — panels were cut down to
+     fit their zone instead (rule 6.6).
+   · No cards, no borders, no section headings on mobile.
+   · No video yet = a full-screen import gate (Upload button,
+     paste-link row, format chips) — no editor at all.
+   · Timeline lanes appear only when they have content.
+   · Server settings live behind the header gear icon.
+   ============================================================ */
+.cf-back,.cf-gear{display:none}
+.cf-gate-fmts{display:none}
+#cfPlayOverlay{display:none}
+
+@media(max-width:1023px){
+  /* ---------- Shell ---------- */
+  html{height:100%;overflow:hidden}
+  body{height:100vh;height:100dvh;max-height:100dvh;overflow:hidden;display:flex;flex-direction:column;background-image:none;background-color:var(--bg)}
+  .wrap[data-screen="editor"]{flex:1 1 auto;min-height:0;display:flex !important;flex-direction:column;overflow:hidden !important;overscroll-behavior:none;padding:0 !important;gap:0 !important;background:transparent}
+  .wrap[data-screen="editor"] .mainrow,.wrap[data-screen="editor"] .col{display:contents}
+  .wrap[data-screen="editor"] .card{background:transparent !important;border:none !important;box-shadow:none !important;border-radius:0 !important}
+  .wrap[data-screen="editor"] .card-h{display:none !important}
+  .wrap[data-screen="editor"] .sec-t{display:none !important}
+  .wrap[data-screen="editor"] .hint{display:none !important}
+  .wrap[data-screen="editor"] *{scrollbar-width:none !important}
+  .wrap[data-screen="editor"] ::-webkit-scrollbar{width:0 !important;height:0 !important;display:none}
+  .toast{bottom:76px}
+
+  /* ---------- Header: back · name · gear · Export ---------- */
+  .topbar{flex:0 0 56px;height:56px;padding:0 10px !important;display:flex;align-items:center;gap:6px;width:100%}
+  .brand-block{flex:0 1 auto;min-width:0}
+  .brand-row{margin-top:0;gap:8px;align-items:center}
+  .brand-mark{width:28px;height:28px;border-radius:7px}
+  .topbar h1{font-size:19px;letter-spacing:.03em}
+  .cf-back{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-height:44px;padding:0;border:none;border-radius:50%;background:transparent;color:var(--text);cursor:pointer;flex:0 0 auto}
+  .cf-back .ic{width:22px;height:22px}
+  .cf-gear{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-height:44px;padding:0;border:none;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer;flex:0 0 auto}
+  .cf-gear .ic{width:21px;height:21px}
+  .cf-gear[aria-pressed="true"]{color:var(--accent-ink);background:var(--accent-soft)}
+  .cf-export-top{display:inline-flex;margin-left:auto;min-height:40px;padding:0 18px;font-size:14.5px;border-radius:10px}
+
+  /* ---------- Bottom tool bar: 8 icons, one row, no labels ---------- */
+  .cf-mobilebar{flex:0 0 64px;display:flex !important;gap:2px;align-items:stretch;background:var(--panel);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:30}
+  .cf-tools-scroll{display:flex;flex:1 1 auto;gap:2px;min-width:0}
+  .cf-mobilebar .cf-tab{flex:1 1 0;min-width:0;min-height:52px;padding:4px 1px;border-radius:12px;border:1px solid transparent}
+  .cf-mobilebar .cf-tab span{display:none}
+  .cf-mobilebar .cf-tab .ic{width:25px;height:25px}
+  .cf-mobilebar .cf-tab.active{color:#fff;background:var(--accent-soft);border-color:rgba(255,46,136,.6)}
+  .cf-mobilebar .cf-export{display:none !important}
+
+  /* ---------- Preview zone ---------- */
+  .wrap[data-screen="editor"] #secProgram{order:1;flex:1 1 auto;min-height:0;display:flex !important;flex-direction:column;width:100%}
+  .wrap[data-screen="editor"] .preview-card .stage-wrap{flex:1 1 auto;min-height:0;display:grid;place-items:center;margin:0 !important;padding:6px 10px;background:transparent}
+  .wrap[data-screen="editor"] .preview-card .stage{width:min(100%,calc(38vh * var(--cf-asp,.5625)));margin:0 auto;justify-self:center;border:none}
+  .wrap[data-screen="editor"]:not([data-tool="none"]) .preview-card .stage{width:min(100%,calc(23vh * var(--cf-asp,.5625)))}
+  .wrap[data-screen="editor"] .preview-card .caption-bar,
+  .wrap[data-screen="editor"] .preview-card .prog-meta{display:none !important}
+  .wrap[data-screen="editor"] .preview-card .controls{flex:0 0 auto;padding:0 14px 4px !important}
+  .wrap[data-screen="editor"] .preview-card .controls .time-row,
+  .wrap[data-screen="editor"] .preview-card .controls .btn-row,
+  .wrap[data-screen="editor"] .preview-card .controls .progress{display:none !important}
+  .wrap[data-screen="editor"] .preview-card .controls input[type=range]{height:22px;width:100%}
+  .wrap[data-screen="editor"] .preview-card .fmt-tag,
+  .wrap[data-screen="editor"] .preview-card .live-dot,
+  .wrap[data-screen="editor"] .preview-card .guides-toggle{display:none !important}
+  #cfPlayOverlay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;border:none;background:rgba(224,0,122,.92);color:#fff;place-items:center;cursor:pointer;z-index:9;box-shadow:0 6px 20px rgba(0,0,0,.5);padding:0}
+  #cfPlayOverlay .ic{width:26px;height:26px;margin-left:3px}
+  #cfPlayOverlay.on{display:grid}
+  .stage.no-video #cfPlayOverlay{display:none !important}
+
+  /* ---------- Timeline: fixed 118px strip, content lanes only ---------- */
+  .wrap[data-screen="editor"] #secTimeline{order:2;flex:0 0 118px !important;height:118px;display:flex !important;flex-direction:column;width:100%;overflow:hidden;border-top:1px solid var(--line) !important}
+  .wrap[data-screen="editor"] #secTimeline .tl-body{display:flex !important;flex:1 1 auto;min-height:0;padding:6px 10px 8px !important;overflow:hidden !important}
+  .wrap[data-screen="editor"] .tl-tracks{flex:1 1 auto;min-height:0;height:100%;display:flex;flex-direction:column;gap:3px}
+  .wrap[data-screen="editor"] .tl-ruler-row{flex:0 0 14px;display:grid;grid-template-columns:44px minmax(0,1fr);gap:6px}
+  .wrap[data-screen="editor"] .tl-track{flex:1 1 0;min-height:0;display:grid;grid-template-columns:44px minmax(0,1fr);gap:6px;align-items:stretch}
+  .wrap[data-screen="editor"] .tl-name{font-size:8.5px;align-items:center}
+  .wrap[data-screen="editor"] .tl-ruler{height:14px}
+  .wrap[data-screen="editor"] .tl-lane{min-height:0;height:100%;border-radius:5px}
+  .wrap[data-screen="editor"] .film-lane{padding:2px;cursor:pointer;touch-action:none}
+  .wrap[data-screen="editor"] .film-lane img{height:100%}
+  .wrap[data-screen="editor"] .film-lane::before,
+  .wrap[data-screen="editor"] .film-lane::after{content:"";position:absolute;top:0;bottom:0;width:5px;background:var(--accent);z-index:3;pointer-events:none}
+  .wrap[data-screen="editor"] .film-lane::before{left:0;border-radius:3px 0 0 3px}
+  .wrap[data-screen="editor"] .film-lane::after{right:0;border-radius:0 3px 3px 0}
+  .wrap[data-screen="editor"] .wave-lane .wave-wrap{height:100%;padding:0}
+  .wrap[data-screen="editor"] .wave-lane canvas#wave{height:100%;border-radius:0}
+  .wrap[data-screen="editor"] .tl-ph-wrap{left:50px;right:0}
+  /* Lanes with nothing in them are not rendered at all */
+  .wrap[data-screen="editor"] .tl-track-cap,
+  .wrap[data-screen="editor"] .tl-track-kf,
+  .wrap[data-screen="editor"] .tl-track-wave{display:none !important}
+  .wrap[data-screen="editor"] .tl-track-cap.cf-has,
+  .wrap[data-screen="editor"] .tl-track-kf.cf-has,
+  .wrap[data-screen="editor"] .tl-track-wave.cf-has{display:grid !important}
+
+  /* ---------- Tool panel zone: one flat panel, never scrolls ---------- */
+  .wrap[data-screen="editor"] #secCapture,
+  .wrap[data-screen="editor"] #secMoments,
+  .wrap[data-screen="editor"] .format-card,
+  .wrap[data-screen="editor"] .live-card,
+  .wrap[data-screen="editor"] .insp-panel{order:3;flex:0 1 auto;min-height:0;width:100%;overflow:hidden !important;border-top:1px solid var(--line) !important}
+  .wrap[data-screen="editor"] #secInspector,
+  .wrap[data-screen="editor"] #secExport,
+  .wrap[data-screen="editor"] .clips-strip{display:none !important}
+  .wrap[data-screen="editor"] .pad{padding:10px 12px 12px !important;gap:9px}
+  .wrap[data-screen="editor"] .list{padding:8px 12px 12px !important;gap:8px}
+  .wrap[data-screen="editor"] .empty{border:none;background:transparent;padding:6px;font-size:12.5px}
+  .wrap[data-screen="editor"] .sec{border-top:none !important;margin-top:0 !important;padding-top:0 !important}
+
+  /* Media panel: Add video row · link row · Auto clip — nothing else */
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture{display:flex !important;flex-direction:column;gap:9px;padding:11px 12px 12px}
+  .wrap[data-screen="editor"] #secCapture .src-hint{display:none !important}
+  .wrap[data-screen="editor"] #dropZone{order:1;flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:9px;margin:0 !important;padding:10px 12px;min-height:48px;background:transparent}
+  .wrap[data-screen="editor"] #dropZone strong{display:inline;font-size:15px}
+  .wrap[data-screen="editor"] #dropZone span{display:inline;margin-top:0;font-size:13px}
+  .wrap[data-screen="editor"] #secCapture .yt-box{order:2;flex:0 1 auto;min-height:0;margin:0 !important;padding:0 !important;background:transparent !important;border:none !important}
+  .wrap[data-screen="editor"] #secCapture .yt-box>label{font-size:12px;margin-bottom:7px}
+  .wrap[data-screen="editor"] #secCapture .yt-preview{max-height:110px}
+  .wrap[data-screen="editor"] #secCapture .yt-help,
+  .wrap[data-screen="editor"] #secCapture .yt-fallback{display:none !important}
+  .wrap[data-screen="editor"] #secCapture .autoclip-wrap{order:3;flex:0 0 auto;padding:0 !important}
+  .wrap[data-screen="editor"] #autoClipBtn{min-height:48px !important;font-size:16px !important}
+  /* Server settings: hidden until the header gear opens them */
+  .wrap[data-screen="editor"] #secCapture .adv{display:none !important;margin-top:9px}
+  body.cf-srv .wrap[data-screen="editor"] #secCapture .adv{display:block !important}
+  body.cf-srv .wrap[data-screen="editor"] #secCapture .adv summary{min-height:46px;padding:8px 12px}
+
+  /* Cut panel: moment finders, moment strip, trim sliders, Make clip */
+  .wrap[data-screen="editor"][data-tool="cut"] #secMoments{display:flex !important;flex-direction:column}
+  .wrap[data-screen="editor"] #secMoments .pad{flex-direction:row !important;padding-bottom:0 !important}
+  .wrap[data-screen="editor"] #secMoments .pad .btn{flex:1 1 0;min-width:0;min-height:46px}
+  .wrap[data-screen="editor"] #momentsList{display:flex !important;flex-direction:row;overflow-x:auto;overflow-y:hidden;gap:8px;padding:9px 12px 4px !important}
+  .wrap[data-screen="editor"] #momentsList .mom-card{flex:0 0 128px}
+  .wrap[data-screen="editor"] #momentsList .empty{flex:1 1 auto;text-align:center}
+  .wrap[data-screen="editor"] #secMoments .tl-side{max-height:none;overflow:visible;display:flex;flex-direction:column;gap:7px;margin:4px 12px 12px;padding:10px 0 0;border-top:1px solid var(--line)}
+  .wrap[data-screen="editor"] #secMoments .tl-side .io-grid,
+  .wrap[data-screen="editor"] #secMoments .tl-side #durChips,
+  .wrap[data-screen="editor"] #secMoments .tl-side .clip-len-custom{display:none !important}
+  .wrap[data-screen="editor"] #secMoments .tl-side .ctl-row{grid-template-columns:30px 1fr 44px;margin:0}
+  .wrap[data-screen="editor"] #secMoments .tl-side .btn-row{margin-top:2px !important}
+  .wrap[data-screen="editor"] #secMoments .tl-side .btn-row .btn{flex:1 1 0;min-height:44px}
+  .wrap[data-screen="editor"] #secMoments .tl-side>div[style]{padding:0 !important}
+  .wrap[data-screen="editor"] #secMoments .tl-side .chips{margin-top:2px !important}
+  .wrap[data-screen="editor"] #secMoments #addClipBtn{min-height:46px}
+
+  /* Captions panel: language · auto captions · manual line */
+  .wrap[data-screen="editor"] .insp-panel[data-panel="captions"] #capStatus,
+  .wrap[data-screen="editor"] .insp-panel[data-panel="captions"] #capList{display:none !important}
+  .wrap[data-screen="editor"] .insp-panel[data-panel="captions"] .btn{min-height:46px}
+
+  /* Audio panel: source chips · volume · voice · music (fades cut) */
+  .wrap[data-screen="editor"] .insp-panel[data-panel="sound"] .ctl-row:has(#fadeInSlider),
+  .wrap[data-screen="editor"] .insp-panel[data-panel="sound"] .ctl-row:has(#fadeOutSlider),
+  .wrap[data-screen="editor"] .insp-panel[data-panel="sound"] .music-name{display:none !important}
+  .wrap[data-screen="editor"] .insp-panel[data-panel="sound"] .ctl-row{margin:0}
+  .wrap[data-screen="editor"] .insp-panel[data-panel="sound"] #voiceAutoBtn{min-height:44px !important;margin-top:6px !important}
+
+  /* Text panel */
+  .wrap[data-screen="editor"] .insp-panel[data-panel="text"] #addTextBtn{min-height:46px}
+
+  /* Style panel: presets scroll sideways as one row (rule 6.6) */
+  .wrap[data-screen="editor"] .insp-panel[data-panel="style"] #styleChips{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding-bottom:2px}
+  .wrap[data-screen="editor"] .insp-panel[data-panel="style"] #styleChips .chip{flex:0 0 auto}
+
+  /* Size panel: the format bar only — crop lives on the stage */
+  .wrap[data-screen="editor"][data-tool="size"] .format-card{display:block !important}
+  .wrap[data-screen="editor"] .format-card .fmt-bar{padding:10px 12px;flex-wrap:nowrap;gap:8px}
+  .wrap[data-screen="editor"] .format-card .fmt-size-wrap{flex:1 1 auto;min-height:48px;padding:6px 12px}
+  .wrap[data-screen="editor"] .format-card .badge{display:none !important}
+  .wrap[data-screen="editor"] .format-card .fmt-quick{min-height:48px}
+
+  /* Live panel: link row + Clip this moment — nothing else */
+  .wrap[data-screen="editor"][data-tool="live"] .live-card{display:block !important}
+  .wrap[data-screen="editor"] .live-card .live-grid{display:block;padding:0 12px 12px !important}
+  .wrap[data-screen="editor"] .live-card .live-player,
+  .wrap[data-screen="editor"] .live-card .live-status-row,
+  .wrap[data-screen="editor"] .live-card #liveNoteInput,
+  .wrap[data-screen="editor"] .live-card .live-side{display:none !important}
+  .wrap[data-screen="editor"] .live-card .clip-now-btn{min-height:50px;margin-top:10px}
+
+  /* ---------- Import gate: no video = no editor ---------- */
+  body:has(.stage.no-video) .cf-export-top,
+  body:has(.stage.no-video) .cf-back{display:none !important}
+  body:has(.stage.no-video) .cf-mobilebar{display:none !important}
+  .wrap[data-screen="editor"]:has(.stage.no-video) #secProgram,
+  .wrap[data-screen="editor"]:has(.stage.no-video) #secTimeline,
+  .wrap[data-screen="editor"]:has(.stage.no-video) #secMoments,
+  .wrap[data-screen="editor"]:has(.stage.no-video) .format-card,
+  .wrap[data-screen="editor"]:has(.stage.no-video) .live-card,
+  .wrap[data-screen="editor"]:has(.stage.no-video) .insp-panel,
+  .wrap[data-screen="editor"]:has(.stage.no-video) .clips-strip{display:none !important}
+  .wrap[data-screen="editor"]:has(.stage.no-video) #secCapture{display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:16px;flex:1 1 auto;width:100%;padding:24px 20px;border-top:none !important;overflow:hidden !important}
+  .wrap[data-screen="editor"]:has(.stage.no-video) #secCapture .yt-box{order:2;width:min(340px,88vw);flex:0 0 auto}
+  .wrap[data-screen="editor"]:has(.stage.no-video) #secCapture .yt-box>label{display:none}
+  .wrap[data-screen="editor"]:has(.stage.no-video) #secCapture .yt-preview{display:none !important}
+  .wrap[data-screen="editor"]:has(.stage.no-video) #dropZone{order:1;width:min(340px,88vw);min-height:66px;flex-direction:column;gap:2px;border:none;border-radius:14px;background:linear-gradient(135deg,#ff5da6,#e0007a);color:#fff;box-shadow:0 6px 22px rgba(224,0,122,.35);padding:14px}
+  .wrap[data-screen="editor"]:has(.stage.no-video) #dropZone strong{font-size:18px;color:#fff}
+  .wrap[data-screen="editor"]:has(.stage.no-video) #dropZone span{font-size:12.5px;color:rgba(255,255,255,.85)}
+  /* Auto clip: visible in the gate, directly under the link row */
+  .wrap[data-screen="editor"]:has(.stage.no-video) #secCapture .autoclip-wrap{order:3;display:block !important;width:min(340px,88vw);flex:0 0 auto;padding:0 !important}
+  .wrap[data-screen="editor"]:has(.stage.no-video) #secCapture #autoClipBtn{min-height:52px !important;font-size:16px !important;width:100%}
+  .wrap[data-screen="editor"]:has(.stage.no-video) .cf-gate-fmts{order:4;display:flex;gap:8px}
+  .cf-gate-chip{min-height:44px;padding:9px 18px;border-radius:999px;border:1px solid var(--line-strong);background:var(--panel);color:var(--text);font-weight:700;font-size:14px;cursor:pointer}
+  .cf-gate-chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink)}
+
+  /* Short phones: shrink the preview, never the bar or timeline */
+  @media(max-height:740px){
+    .wrap[data-screen="editor"]:not([data-tool="none"]) .preview-card .stage{width:min(100%,calc(19vh * var(--cf-asp,.5625)))}
+    .wrap[data-screen="editor"] #secTimeline{flex-basis:108px !important;height:108px}
+  }
+}
+@media(max-width:380px){
+  .cf-mobilebar .cf-tab .ic{width:23px;height:23px}
+  .topbar h1{font-size:17px}
 }
 </style>
 </head>
 <body>
 <header class="topbar">
+  <button class="cf-back" id="cfBackBtn" type="button" aria-label="Close tool panel"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5l7 7-7 7M13 5l7 7-7 7" transform="rotate(180 12 12)"/></svg></button>
   <div class="brand-block">
-    <div class="proj-label"><span class="pink-dot"></span>PROJECT / UNTITLED CLIP</div>
     <div class="brand-row">
       <img class="brand-mark" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMyMzBhNDciLz4KICA8cG9seWdvbiBwb2ludHM9IjE3LDE2IDMwLDIzIDI2LDQzIDE3LDQ4IiBmaWxsPSIjZmY0ZDlkIi8+CiAgPHBvbHlnb24gcG9pbnRzPSIzMy41LDI1IDQ5LDM0IDI5LjUsNDUiIGZpbGw9IiNlMDQ0YzgiLz4KPC9zdmc+Cg==" alt="" width="46" height="46">
-      <h1>CLIPFORGE <span>/ CF</span></h1>
+      <h1>CLIPFORGE</h1>
     </div>
   </div>
+  <button class="cf-gear" id="cfGearBtn" type="button" aria-label="Server settings" aria-pressed="false"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h8M18 7.5h2M4 16.5h2M12 16.5h8"/><circle cx="15" cy="7.5" r="2.2"/><circle cx="9" cy="16.5" r="2.2"/></svg></button>
+  <button class="cf-export cf-export-top" type="button"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M7.5 8L12 3.5L16.5 8M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg><span>Export</span></button>
 </header>
 <nav class="stepbar" aria-label="Workflow steps">
-  <button class="step6 active" type="button" data-step="1"><b>01 / CAPTURE</b></button>
-  <button class="step6" type="button" data-step="2"><b>02 / FIND THE CUT</b></button>
-  <button class="step6" type="button" data-step="3"><b>03 / CAPTIONS</b></button>
-  <button class="step6" type="button" data-step="4"><b>04 / REFRAME</b></button>
-  <button class="step6" type="button" data-step="5"><b>05 / TEMPLATE</b></button>
-  <button class="step6" type="button" data-step="6"><b>06 / EXPORT</b></button>
-  <button class="step6 live-step" id="liveStepBtn" type="button"><b>● LIVE</b><span>Stream load</span></button>
-  <button class="btn icon-btn icon-only has-tip tip-below layout-btn" id="layoutResetBtn" type="button" data-tip="Reset layout" aria-label="Reset layout"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10v6H4zM14 4h4.5A1.5 1.5 0 0 1 20 5.5V10h-6zM4 14h6v6H5.5A1.5 1.5 0 0 1 4 18.5zM14 14h6v4.5a1.5 1.5 0 0 1-1.5 1.5H14z"/></svg></button>
-  <div class="step-time mono"><span id="stepElapsed">00:00</span> / <span id="stepTotal">00:00</span></div>
+  <button class="step6 active" type="button" data-step="1"><b>1 · Add video</b></button>
+  <button class="step6" type="button" data-step="2"><b>2 · Cut</b></button>
+  <button class="step6" type="button" data-step="3"><b>3 · Captions &amp; sound</b></button>
+  <button class="step6" type="button" data-step="4"><b>4 · Size &amp; crop</b></button>
+  <button class="step6" type="button" data-step="5"><b>5 · Style &amp; text</b></button>
+  <button class="step6" type="button" data-step="6"><b>6 · Export</b></button>
+  <button class="step6 live-step" id="liveStepBtn" type="button"><b>● Live</b><span>Watch a stream</span></button>
+  <button class="small-btn layout-btn icon-btn has-tip tip-below" id="resetLayoutBtn" type="button" data-tip="Reset panel layout" aria-label="Reset panel layout"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.2 12a8.8 8.8 0 1 0 2.6-6.2"/><path d="M3.2 3.8v5h5"/></svg><span>Reset layout</span></button>
+</nav>
+
+<nav class="cf-bar" aria-label="Editor tools">
+  <button class="cf-tab active" type="button" data-tool="media"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M8 8.5l4 4 4-4M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg><span>Media</span></button>
+  <button class="cf-tab" type="button" data-tool="cut"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="7" r="2.6"/><circle cx="6" cy="17" r="2.6"/><path d="M8.2 9.2L20 19M8.2 14.8L20 5"/></svg><span>Cut</span></button>
+  <button class="cf-tab" type="button" data-tool="captions"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10.5 10.2a2.4 2.4 0 1 0 0 3.6M17.5 10.2a2.4 2.4 0 1 0 0 3.6"/></svg><span>Captions</span></button>
+  <button class="cf-tab" type="button" data-tool="audio"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3.5L12 18.5v-13L7.5 10H4z"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg><span>Audio</span></button>
+  <button class="cf-tab" type="button" data-tool="text"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6V4.5h14V6M12 4.5V19M9 19h6"/></svg><span>Text</span></button>
+  <button class="cf-tab" type="button" data-tool="style"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.7 4.6L18.5 10l-4.8 1.9L12 16.5l-1.7-4.6L5.5 10l4.8-1.9L12 3.5z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z"/></svg><span>Style</span></button>
+  <button class="cf-tab" type="button" data-tool="size"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3.5" width="10" height="17" rx="1.5"/><path d="M10.5 17.5h3"/></svg><span>Size</span></button>
+  <button class="cf-tab" type="button" data-tool="live"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.2"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M6 6a9 9 0 0 0 0 12M18 6a9 9 0 0 1 0 12"/></svg><span>Live</span></button>
+  <span class="cf-spacer"></span>
+  <button class="cf-export" type="button"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M7.5 8L12 3.5L16.5 8M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg><span>Export</span></button>
 </nav>
 
 <main class="wrap" data-view="edit" data-screen="capture">
@@ -897,7 +1541,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   <section class="card preview-card ord-preview" id="secProgram">
     <div class="card-h prog-h">
       <div>
-        <h2>Program / SOURCE_01</h2>
+        <h2>Preview</h2>
         <p class="card-sub src-label"><span class="src-dot">●</span> <span id="srcName">No source loaded</span></p>
       </div>
       <label class="speed-wrap">Speed
@@ -930,7 +1574,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
         <div class="safe ui-zone ui-top" id="uiTop">UI</div>
         <div class="safe ui-zone ui-bot" id="uiBot">Captions</div>
         <div class="focus-dot" id="focusDot"></div>
-        <div class="video-empty" id="videoEmpty" role="button" tabindex="0" aria-label="Upload a video file"><div><b>No video</b><button class="btn primary icon-btn" type="button" id="stageUploadBtn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.2 15.4V6.1L7.9 9.4 6.4 7.9 12 2.3l5.6 5.6-1.5 1.5-3.3-3.3v9.3zM4.5 18.6h15V21h-15z"/></svg><span>Upload video</span></button><span>MP4 / WebM / MOV</span></div></div>
+        <div class="video-empty" id="videoEmpty" role="button" tabindex="0" aria-label="Upload a video file"><div><button class="btn primary icon-btn" type="button" id="stageUploadBtn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.2 15.4V6.1L7.9 9.4 6.4 7.9 12 2.3l5.6 5.6-1.5 1.5-3.3-3.3v9.3zM4.5 18.6h15V21h-15z"/></svg><span>Upload video</span></button></div></div>
         <span class="live-dot" id="liveDot">Preview</span>
         <span class="fmt-tag" id="fmtTag">9:16</span>
         <button class="guides-toggle icon-btn has-tip tip-below" id="guidesToggle" type="button" aria-pressed="false" data-tip="Guides" aria-label="Toggle guides"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5H11V11H3.5zM13 3.5h7.5V11H13zM3.5 13H11v7.5H3.5zM13 13h7.5v7.5H13z"/></svg></button>
@@ -970,10 +1614,10 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   <section class="card source-card ord-source" id="secCapture">
     <div class="card-h">
       <div>
-        <h2><span class="num">02</span>Source</h2>
+        <h2>Add your video</h2>
       </div>
-      <span class="badge">Local file</span>
     </div>
+    <p class="src-hint">Drop a video file below, or paste a YouTube link — then press <b>Auto clip</b>.</p>
 
     <div class="yt-box">
       <label for="ytInput">YouTube link</label>
@@ -1000,66 +1644,53 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
       </div>
       <button class="btn primary" id="serverClipBtn" type="button" style="width:100%;margin-top:12px;display:none">Auto clip from link (free server)</button>
       <p class="yt-status" id="serverStatus" role="status"></p>
-      <div style="margin-top:12px">
-        <label for="serverUrlInput">Server Worker URL</label>
-        <div class="yt-row">
-          <input type="url" id="serverUrlInput" aria-label="Server Worker URL" autocomplete="off" spellcheck="false">
-          <button class="btn" id="serverUrlSaveBtn" type="button">Save</button>
+      <details class="adv">
+        <summary><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h8M18 7.5h2M4 16.5h2M12 16.5h8"/><circle cx="15" cy="7.5" r="2.2"/><circle cx="9" cy="16.5" r="2.2"/></svg><span class="adv-txt"><strong>Server settings</strong><small>Free server for link auto-clip — tap to set it up</small></span><span class="adv-chev" aria-hidden="true">▾</span></summary>
+        <div class="adv-body">
+          <label for="serverUrlInput">Server Worker URL</label>
+          <div class="yt-row">
+            <input type="url" id="serverUrlInput" aria-label="Server Worker URL" autocomplete="off" spellcheck="false">
+            <button class="btn" id="serverUrlSaveBtn" type="button">Save</button>
+          </div>
         </div>
-      </div>
+      </details>
+    </div>
+
+    <div class="cf-gate-fmts" role="group" aria-label="Output size">
+      <button type="button" class="cf-gate-chip active" data-gfmt="vertical">9:16</button>
+      <button type="button" class="cf-gate-chip" data-gfmt="wide">16:9</button>
+      <button type="button" class="cf-gate-chip" data-gfmt="square">1:1</button>
     </div>
 
     <label class="drop" id="dropZone">
       <strong>Drop video</strong>
-      <span>MP4 · WebM · MOV · <b id="dropFmtLabel">9:16 Shorts</b></span>
+      <span><b id="dropFmtLabel">9:16 Shorts</b></span>
       <input type="file" id="fileInput" accept="video/*">
     </label>
 
-    <div style="padding:14px 20px 20px">
+    <div class="autoclip-wrap" style="padding:14px 20px 20px">
       <button class="btn primary icon-btn" id="autoClipBtn" type="button" style="width:100%;min-height:54px;font-size:17px;font-weight:700"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="7" r="2.6"/><circle cx="6" cy="17" r="2.6"/><path d="M8.2 9.2L20 19M8.2 14.8L20 5"/></svg><span class="btn-lbl">Auto clip</span></button>
     </div>
   </section>
 
   <!-- FORMAT / COMPOSITION -->
-  <section class="card format-card ord-format" aria-label="Output format and composition">
+  <section class="card format-card ord-format" aria-label="Output size">
     <div class="fmt-bar">
-      <button class="fmt-open" id="fmtOpenBtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="fmtPopover">
-        <span class="fmt-shape vertical" id="fmtBtnShape" aria-hidden="true"></span>
-        <span class="fmt-open-txt">
-          <span class="fmt-open-k">Composition</span>
-          <span class="fmt-open-v"><b id="fmtBtnLabel">Auto (source size)</b> · <span class="mono" id="fmtBtnRes">720 × 1280</span></span>
-        </span>
-        <span class="fmt-open-chev" aria-hidden="true">▾</span>
-      </button>
+      <div class="fmt-size-wrap">
+        <label for="fmtSelect">Size</label>
+        <select class="fmt-select" id="fmtSelect" aria-label="Output size">
+          <option value="auto" selected>Auto (source size)</option>
+          <option value="vertical">9:16 Shorts · 720 × 1280</option>
+          <option value="wide">16:9 Wide · 1280 × 720</option>
+          <option value="square">1:1 Square · 1080 × 1080</option>
+          <option value="portrait45">4:5 Portrait · 1080 × 1350</option>
+          <option value="p34">3:4 Portrait · 1080 × 1440</option>
+          <option value="cine">21:9 Cinematic · 2520 × 1080</option>
+        </select>
+      </div>
+      <span class="badge" id="resLabel">720 × 1280</span>
       <button class="chip toggle fmt-quick icon-btn" id="gridChip" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5H11V11H3.5zM13 3.5h7.5V11H13zM3.5 13H11v7.5H3.5zM13 13h7.5v7.5H13z"/></svg><span>Grid</span></button>
       <button class="chip toggle fmt-quick icon-btn" id="safeChip" type="button"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/></svg><span>Safe</span></button>
-    </div>
-    <div class="fmt-pop" id="fmtPopover" role="dialog" aria-label="Composition — output format" hidden>
-    <div class="fmt-pop-h">
-      <h2><span class="num">01</span>Composition / Output format</h2>
-      <span style="display:flex;gap:8px;align-items:center"><span class="badge" id="resLabel">720 × 1280</span><button class="small-btn" id="fmtCloseBtn" type="button">Done</button></span>
-    </div>
-    <div class="fmt-options" id="fmtChips" role="group" aria-label="Video format">
-      <button class="chip fmt-opt" data-fmt="auto" aria-pressed="true"><span class="fmt-shape custom" aria-hidden="true"></span><strong>Auto</strong><small id="autoFmtLabel">Auto (source size) \u2014 detect on load</small></button>
-      <button class="chip fmt-opt" data-fmt="vertical" aria-pressed="false"><span class="fmt-shape vertical" aria-hidden="true"></span><strong>9:16 Shorts</strong><small>720 × 1280</small></button>
-      <button class="chip fmt-opt" data-fmt="wide" aria-pressed="false"><span class="fmt-shape wide" aria-hidden="true"></span><strong>16:9 Wide</strong><small>1280 × 720</small></button>
-      <button class="chip fmt-opt" data-fmt="square" aria-pressed="false"><span class="fmt-shape square" aria-hidden="true"></span><strong>1:1 Square</strong><small>1080 × 1080</small></button>
-      <button class="chip fmt-opt" data-fmt="portrait45" aria-pressed="false"><span class="fmt-shape p45" aria-hidden="true"></span><strong>4:5 Portrait</strong><small>1080 × 1350</small></button>
-      <button class="chip fmt-opt" data-fmt="p34" aria-pressed="false"><span class="fmt-shape p34" aria-hidden="true"></span><strong>3:4 Portrait</strong><small>1080 × 1440</small></button>
-      <button class="chip fmt-opt" data-fmt="cine" aria-pressed="false"><span class="fmt-shape cine" aria-hidden="true"></span><strong>21:9 Cinematic</strong><small>2520 × 1080</small></button>
-    </div>
-    <div class="fmt-custom" id="customBox">
-      <div class="fmt-custom-head"><span class="fmt-shape custom" aria-hidden="true"></span><strong>Custom size</strong></div>
-      <div class="custom-row">
-        <label>Width (px)<input type="number" id="customW" min="16" max="7680" step="2" value="1080"></label>
-        <span class="custom-x">×</span>
-        <label>Height (px)<input type="number" id="customH" min="16" max="7680" step="2" value="1080"></label>
-        <button class="btn primary" id="customApply" type="button">Use custom size</button>
-      </div>
-    </div>
-    <div class="format-foot">
-      <span class="format-live" id="formatLive">Selected: <b>9:16 Shorts</b></span>
-    </div>
     </div>
   </section>
 
@@ -1115,9 +1746,8 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
     <section class="card ai-card ord-ai" id="secMoments">
       <div class="card-h">
         <div>
-          <h2>Media bin / Source moments</h2>
+          <h2>Moments</h2>
         </div>
-        <span class="badge">Auto</span>
       </div>
       <div class="pad" style="padding-bottom:2px">
         <button class="btn accent icon-btn" id="analyzeBtn" style="width:100%"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M10.5 3a7.5 7.5 0 1 0 4.7 13.5l4 4 1.5-1.5-4-4A7.5 7.5 0 0 0 10.5 3zm0 2.2a5.3 5.3 0 1 1 0 10.6 5.3 5.3 0 0 1 0-10.6z"/></svg><span class="btn-lbl">Find moments</span></button>
@@ -1129,8 +1759,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
 
     <section class="card inspector-card ord-insp" id="secInspector">
       <div class="card-h">
-        <div><h2>Inspector / Live edit</h2></div>
-        <span class="badge">KEYFRAMES</span>
+        <div><h2>Crop &amp; adjust</h2></div>
       </div>
       <div class="pad">
         <div>
@@ -1173,12 +1802,6 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
             <button class="chip" data-ease="out" type="button">Ease out</button>
           </div>
         </div>
-        <div class="pill-row">
-          <button class="jump-pill p-violet" type="button" data-jump="captions">11 Captions</button>
-          <button class="jump-pill p-mint" type="button" data-jump="motion">14 Reframe</button>
-          <button class="jump-pill p-pink" type="button" data-jump="easing">19 Motion</button>
-          <button class="jump-pill p-lime" type="button" data-jump="style">20 Color</button>
-        </div>
       </div>
     </section>
 
@@ -1190,7 +1813,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
     </div>
 
     <section class="card insp-panel ord-sound active" data-panel="sound">
-      <div class="card-h"><h2>Sound</h2><span class="badge">Mix</span></div>
+      <div class="card-h"><h2>Sound</h2></div>
       <div class="pad">
         <div class="chips">
           <button class="chip toggle active" id="keepAudioChip">Original audio</button>
@@ -1222,7 +1845,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
     </section>
 
     <section class="card insp-panel ord-captions" data-panel="captions">
-      <div class="card-h"><h2>Captions</h2><span class="badge">Speech</span></div>
+      <div class="card-h"><h2>Captions</h2></div>
       <div class="pad">
         <p class="hint" id="capStatus" style="margin:0">Chrome · sound on</p>
         <select id="capLang">
@@ -1248,7 +1871,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
     </section>
 
     <section class="card insp-panel ord-text" data-panel="text">
-      <div class="card-h"><h2>Text</h2><span class="badge">Overlay</span></div>
+      <div class="card-h"><h2>Text</h2></div>
       <div class="pad">
         <input type="text" class="text-input" id="textInput" placeholder="Type text…" autocomplete="off">
         <div class="ctl-row"><label>Size</label><input type="range" id="textSize" min="3" max="14" step="0.5" value="6"><output id="textSizeVal">6%</output></div>
@@ -1268,7 +1891,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
     </section>
 
     <section class="card insp-panel ord-style" data-panel="style">
-      <div class="card-h"><h2>Clip style</h2><span class="badge">Look</span></div>
+      <div class="card-h"><h2>Clip style</h2></div>
       <div class="pad">
         <div class="chips" id="styleChips" role="group" aria-label="Clip style preset">
           <button class="chip active" data-style="hype" type="button" aria-pressed="true">Hype</button>
@@ -1283,8 +1906,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
 
     <section class="card outprev-card ord-out" id="secExport">
       <div class="card-h">
-        <div><h2><span id="outRatioLabel">16:9</span> / Output preview</h2></div>
-        <span class="badge">SHORT_01</span>
+        <div><h2>Output preview · <span id="outRatioLabel">16:9</span></h2></div>
       </div>
       <div class="pad">
         <div class="out-stage">
@@ -1300,16 +1922,16 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
 
   <section class="card timeline-card ord-timeline" id="secTimeline">
     <div class="card-h tl-h">
-      <div><h2>Sequence / SHORT_01</h2></div>
+      <div><h2>Timeline</h2></div>
       <span class="badge" id="tlSnap">SNAP • 30 SEC</span>
     </div>
     <div class="tl-body">
       <div class="tl-tracks" id="tlTracks">
         <div class="tl-ruler-row"><span class="tl-name"></span><div class="tl-ruler" id="tlRuler"></div></div>
-        <div class="tl-track"><span class="tl-name">Source</span><div class="tl-lane film-lane" id="filmLane"></div></div>
-        <div class="tl-track"><span class="tl-name">Captions</span><div class="tl-lane cap-lane" id="capLane"></div></div>
-        <div class="tl-track"><span class="tl-name">Reframe</span><div class="tl-lane kf-lane" id="kfLane"></div></div>
-        <div class="tl-track"><span class="tl-name">Audio</span><div class="tl-lane wave-lane">    <div class="wave-wrap">
+        <div class="tl-track tl-track-src"><span class="tl-name">Source</span><div class="tl-lane film-lane" id="filmLane"></div></div>
+        <div class="tl-track tl-track-cap"><span class="tl-name">Captions</span><div class="tl-lane cap-lane" id="capLane"></div></div>
+        <div class="tl-track tl-track-kf"><span class="tl-name">Reframe</span><div class="tl-lane kf-lane" id="kfLane"></div></div>
+        <div class="tl-track tl-track-wave"><span class="tl-name">Audio</span><div class="tl-lane wave-lane">    <div class="wave-wrap">
       <canvas id="wave" width="900" height="78"></canvas>
       <p class="wave-note" id="waveNote"></p>
     </div></div></div>
@@ -1349,48 +1971,15 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
         <button class="btn" id="clipLenApply" type="button">Use custom</button>
       </div>
     </div>
-        <div class="pill-row">
-          <button class="jump-pill p-pink" type="button" data-jump="program">02 Select</button>
-          <button class="jump-pill p-peach" type="button" data-jump="trim">16 Trim</button>
-          <button class="jump-pill p-mint" type="button" data-jump="sound">17 Audio</button>
-          <button class="jump-pill p-violet" type="button" data-jump="captions">11 Captions</button>
-        </div>
       </div>
     </div>
   </section>
 
-  <section class="card toolkit-card ord-toolkit" id="secToolkit">
-    <div class="card-h">
-      <div><h2>Toolkit</h2></div>
-    </div>
-    <div class="tk-grid">
-      <div class="tk-cell" data-step="5"><b>01</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 6.6 6.6 1.9-6.6 1.9L12 19.5l-1.9-6.6L3.5 11l6.6-1.9z"/></svg></span><div class="tk-txt"><strong>Remotion Skills</strong></div></div>
-      <div class="tk-cell" data-step="2"><b>02</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M10.5 3a7.5 7.5 0 1 0 4.7 13.5l4 4 1.5-1.5-4-4A7.5 7.5 0 0 0 10.5 3zm0 2.2a5.3 5.3 0 1 1 0 10.6 5.3 5.3 0 0 1 0-10.6z"/></svg></span><div class="tk-txt"><strong>ClipsAI</strong></div></div>
-      <div class="tk-cell" data-step="2"><b>03</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M10.5 3a7.5 7.5 0 1 0 4.7 13.5l4 4 1.5-1.5-4-4A7.5 7.5 0 0 0 10.5 3zm0 2.2a5.3 5.3 0 1 1 0 10.6 5.3 5.3 0 0 1 0-10.6z"/></svg></span><div class="tk-txt"><strong>FunClip</strong></div></div>
-      <div class="tk-cell" data-step="1"><b>04</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9.6l-3.4-3.4-1.5 1.5L12 15.6l4.9-4.9-1.5-1.5L12 12.6V3zM4.5 18.5h15V21h-15z"/></svg></span><div class="tk-txt"><strong>yt-dlp</strong></div></div>
-      <div class="tk-cell" data-step="1"><b>05</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9.6l-3.4-3.4-1.5 1.5L12 15.6l4.9-4.9-1.5-1.5L12 12.6V3zM4.5 18.5h15V21h-15z"/></svg></span><div class="tk-txt"><strong>TwitchDownloader</strong></div></div>
-      <div class="tk-cell" data-step="1"><b>06</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9.6l-3.4-3.4-1.5 1.5L12 15.6l4.9-4.9-1.5-1.5L12 12.6V3zM4.5 18.5h15V21h-15z"/></svg></span><div class="tk-txt"><strong>Streamlink</strong></div></div>
-      <div class="tk-cell" data-step="1"><b>07</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9.6l-3.4-3.4-1.5 1.5L12 15.6l4.9-4.9-1.5-1.5L12 12.6V3zM4.5 18.5h15V21h-15z"/></svg></span><div class="tk-txt"><strong>OBS Studio</strong></div></div>
-      <div class="tk-cell" data-step="2"><b>08</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M10.5 3a7.5 7.5 0 1 0 4.7 13.5l4 4 1.5-1.5-4-4A7.5 7.5 0 0 0 10.5 3zm0 2.2a5.3 5.3 0 1 1 0 10.6 5.3 5.3 0 0 1 0-10.6z"/></svg></span><div class="tk-txt"><strong>PySceneDetect</strong></div></div>
-      <div class="tk-cell" data-step="2"><b>09</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M10.5 3a7.5 7.5 0 1 0 4.7 13.5l4 4 1.5-1.5-4-4A7.5 7.5 0 0 0 10.5 3zm0 2.2a5.3 5.3 0 1 1 0 10.6 5.3 5.3 0 0 1 0-10.6z"/></svg></span><div class="tk-txt"><strong>Auto-Editor</strong></div></div>
-      <div class="tk-cell" data-step="3"><b>10</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.6" y="5" width="18.8" height="14" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><text x="12" y="15.4" text-anchor="middle" font-size="7.2" font-weight="800" fill="currentColor">CC</text></svg></span><div class="tk-txt"><strong>faster-whisper</strong></div></div>
-      <div class="tk-cell" data-step="3"><b>11</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.6" y="5" width="18.8" height="14" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><text x="12" y="15.4" text-anchor="middle" font-size="7.2" font-weight="800" fill="currentColor">CC</text></svg></span><div class="tk-txt"><strong>WhisperX</strong></div></div>
-      <div class="tk-cell" data-step="2"><b>12</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M10.5 3a7.5 7.5 0 1 0 4.7 13.5l4 4 1.5-1.5-4-4A7.5 7.5 0 0 0 10.5 3zm0 2.2a5.3 5.3 0 1 1 0 10.6 5.3 5.3 0 0 1 0-10.6z"/></svg></span><div class="tk-txt"><strong>Silero VAD</strong></div></div>
-      <div class="tk-cell" data-step="4"><b>13</b><span class="tk-ic"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/></svg></span><div class="tk-txt"><strong>MediaPipe</strong></div></div>
-      <div class="tk-cell" data-step="4"><b>14</b><span class="tk-ic"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/></svg></span><div class="tk-txt"><strong>OpenCV</strong></div></div>
-      <div class="tk-cell" data-step="3"><b>15</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.6" y="5" width="18.8" height="14" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><text x="12" y="15.4" text-anchor="middle" font-size="7.2" font-weight="800" fill="currentColor">CC</text></svg></span><div class="tk-txt"><strong>Subtitle Edit</strong></div></div>
-      <div class="tk-cell" data-step="6"><b>16</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.2 15.4V6.1L7.9 9.4 6.4 7.9 12 2.3l5.6 5.6-1.5 1.5-3.3-3.3v9.3zM4.5 14.5h2.7v4.9h9.6v-4.9H19.5v4.9a2.4 2.4 0 0 1-2.4 2.4H6.9a2.4 2.4 0 0 1-2.4-2.4z"/></svg></span><div class="tk-txt"><strong>LosslessCut</strong></div></div>
-      <div class="tk-cell" data-step="5"><b>17</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 6.6 6.6 1.9-6.6 1.9L12 19.5l-1.9-6.6L3.5 11l6.6-1.9z"/></svg></span><div class="tk-txt"><strong>MoviePy</strong></div></div>
-      <div class="tk-cell" data-step="5"><b>18</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 6.6 6.6 1.9-6.6 1.9L12 19.5l-1.9-6.6L3.5 11l6.6-1.9z"/></svg></span><div class="tk-txt"><strong>OpenCut</strong></div></div>
-      <div class="tk-cell" data-step="5"><b>19</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 6.6 6.6 1.9-6.6 1.9L12 19.5l-1.9-6.6L3.5 11l6.6-1.9z"/></svg></span><div class="tk-txt"><strong>Remotion</strong></div></div>
-      <div class="tk-cell" data-step="6"><b>20</b><span class="tk-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.2 15.4V6.1L7.9 9.4 6.4 7.9 12 2.3l5.6 5.6-1.5 1.5-3.3-3.3v9.3zM4.5 14.5h2.7v4.9h9.6v-4.9H19.5v4.9a2.4 2.4 0 0 1-2.4 2.4H6.9a2.4 2.4 0 0 1-2.4-2.4z"/></svg></span><div class="tk-txt"><strong>FFmpeg</strong></div></div>
-    </div>
-  </section>
 
   <section class="card clips-strip ord-clips">
     <div class="card-h">
       <div>
-        <h2><span class="num">04</span>My clips</h2>
+        <h2>My clips</h2>
       </div>
       <span class="badge" id="clipCount">0 ready</span>
     </div>
@@ -1403,6 +1992,20 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   <button class="mtab" type="button" data-view="source" aria-selected="false"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M8 8.5l4 4 4-4M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg><span>Source</span></button>
   <button class="mtab" type="button" data-view="clips" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 4v16M16 4v16M3.5 9H8M3.5 15H8M16 9h4.5M16 15h4.5" stroke="currentColor" stroke-width="1.8" fill="none"/></svg><span>Clips</span></button>
   <button class="mtab" type="button" data-view="tools" aria-selected="false"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h8M18 7.5h2M4 16.5h2M12 16.5h8"/><circle cx="15" cy="7.5" r="2.2"/><circle cx="9" cy="16.5" r="2.2"/></svg><span>Tools</span></button>
+</nav>
+
+<nav class="cf-mobilebar" aria-label="Editor tools">
+  <div class="cf-tools-scroll">
+    <button class="cf-tab active" type="button" data-tool="media" aria-label="Media"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M8 8.5l4 4 4-4M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg><span>Media</span></button>
+    <button class="cf-tab" type="button" data-tool="cut" aria-label="Cut"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="7" r="2.6"/><circle cx="6" cy="17" r="2.6"/><path d="M8.2 9.2L20 19M8.2 14.8L20 5"/></svg><span>Cut</span></button>
+    <button class="cf-tab" type="button" data-tool="captions" aria-label="Captions"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10.5 10.2a2.4 2.4 0 1 0 0 3.6M17.5 10.2a2.4 2.4 0 1 0 0 3.6"/></svg><span>Captions</span></button>
+    <button class="cf-tab" type="button" data-tool="audio" aria-label="Audio"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3.5L12 18.5v-13L7.5 10H4z"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg><span>Audio</span></button>
+    <button class="cf-tab" type="button" data-tool="text" aria-label="Text"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6V4.5h14V6M12 4.5V19M9 19h6"/></svg><span>Text</span></button>
+    <button class="cf-tab" type="button" data-tool="style" aria-label="Style"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.7 4.6L18.5 10l-4.8 1.9L12 16.5l-1.7-4.6L5.5 10l4.8-1.9L12 3.5z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z"/></svg><span>Style</span></button>
+    <button class="cf-tab" type="button" data-tool="size" aria-label="Size"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3.5" width="10" height="17" rx="1.5"/><path d="M10.5 17.5h3"/></svg><span>Size</span></button>
+    <button class="cf-tab" type="button" data-tool="live" aria-label="Live"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.2"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M6 6a9 9 0 0 0 0 12M18 6a9 9 0 0 1 0 12"/></svg><span>Live</span></button>
+  </div>
+  <button class="cf-export" type="button"><span>Export</span></button>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -1840,48 +2443,31 @@ document.querySelectorAll('#durChips .chip').forEach(function(c){
 });
 
 /* ---------- FORMAT + GUIDES ---------- */
-var fmtPop=$('fmtPopover'), fmtOpenBtn=$('fmtOpenBtn');
-function setFmtPop(open){
-  if(!fmtPop||!fmtOpenBtn) return;
-  fmtPop.hidden=!open;
-  fmtOpenBtn.setAttribute('aria-expanded', open?'true':'false');
-  if(open){ var act=fmtPop.querySelector('.fmt-opt.active')||fmtPop.querySelector('.fmt-opt'); if(act) act.focus(); }
-}
-if(fmtOpenBtn) fmtOpenBtn.addEventListener('click',function(){ setFmtPop(fmtPop.hidden); });
-var fmtCloseBtn=$('fmtCloseBtn');
-if(fmtCloseBtn) fmtCloseBtn.addEventListener('click',function(){ setFmtPop(false); if(fmtOpenBtn) fmtOpenBtn.focus(); });
-document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&fmtPop&&!fmtPop.hidden){ setFmtPop(false); if(fmtOpenBtn) fmtOpenBtn.focus(); } });
-document.querySelectorAll('#fmtChips .chip').forEach(function(c){
-  c.addEventListener('click',function(){
-    if(c.dataset.fmt==='auto'){
-      formatAuto=true;
-      if(detectedFormat) clipFormat=detectedFormat;
-      applyFormat();
-      toast('Format: Auto (source size)'+(detectedFormat?' — '+ratioLabel():' — detect on load'));
-    } else {
-      formatAuto=false;
-      clipFormat=c.dataset.fmt; applyFormat();
-      toast('Format set: '+curLabel());
-    }
-    setFmtPop(false);
-    if(cropAuto) setTimeout(quickAutoFrame,250);
-  });
-});
-$('customApply').addEventListener('click',function(){
-  readCustom(); formatAuto=false; clipFormat='custom'; applyFormat();
-  toast('Format set: Custom '+customW+' × '+customH);
-  setFmtPop(false);
+var fmtSelect=$('fmtSelect');
+if(fmtSelect) fmtSelect.addEventListener('change',function(){
+  var v=fmtSelect.value;
+  if(v==='auto'){
+    formatAuto=true;
+    if(detectedFormat) clipFormat=detectedFormat;
+    applyFormat();
+    toast('Format: Auto (source size)'+(detectedFormat?' — '+ratioLabel():' — detect on load'));
+  } else {
+    formatAuto=false;
+    clipFormat=v; applyFormat();
+    toast('Format set: '+curLabel());
+  }
   if(cropAuto) setTimeout(quickAutoFrame,250);
 });
-['customW','customH'].forEach(function(id){ $(id).addEventListener('change',function(){ if(clipFormat==='custom'){ readCustom(); applyFormat(); } }); });
 function applyFormat(){
   if(clipFormat==='custom') readCustom();
   var d=outDims(), asp=d.w/d.h;
   stage.style.aspectRatio=d.w+' / '+d.h;
+  stage.style.setProperty('--cf-asp', asp.toFixed(4));
   stage.style.maxWidth = asp<0.95 ? 'min(400px, calc(44vh * '+asp.toFixed(3)+'))' : (asp<1.05 ? 'min(520px, 48vh)' : '');
   stage.classList.toggle('show-ui', asp<1);
   $('fmtTag').textContent=ratioLabel();
   $('resLabel').textContent=d.w+' × '+d.h;
+  var fsEl=$('fmtSelect'); if(fsEl) fsEl.value=formatAuto?'auto':clipFormat;
   var label=curLabel();
   var bl=$('fmtBtnLabel'); if(bl) bl.textContent= formatAuto ? 'Auto (source size)' : label;
   var br=$('fmtBtnRes'); if(br) br.textContent=d.w+' × '+d.h+' · '+ratioLabel();
@@ -2465,7 +3051,7 @@ function renderClips(){
       if(typeof cl.voiceReduction==='number') voiceReduction=cl.voiceReduction;
       voiceAuto=!!(cl.voiceAuto||cl.voiceMode==='auto'); voicePresent=false; voiceAutoCut=0;
       syncVoiceUI(); eagerGraph(); if(voiceAuto) startVoiceDetection(); else applyVoiceReduction();
-      if(cl.format==='custom'&&cl.w){ customW=cl.w; customH=cl.h; $('customW').value=cl.w; $('customH').value=cl.h; }
+      if(cl.format==='custom'&&cl.w){ customW=cl.w; customH=cl.h; }
       textItems=(cl.texts||[]).map(function(t){ return {id:++textSeq,text:t.text,x:t.x,y:t.y,size:t.size,color:t.color}; });
       selTextId=null; renderTextOverlays();
       clipStyle=cl.style||'hype'; hookText=cl.hook||''; clipTitle=cl.clipTitle||''; clipSubtitle=cl.clipSubtitle||'';
@@ -3581,117 +4167,356 @@ renderTimeline(true);
 })();
 </script>
 <script>
-/* ---------- SCREENS PANEL LAYOUT: drag grip to swap panels, drag edges to resize, reset ---------- */
+/* ---------- PANEL LAYOUT: grip-drag to move panels, drag edges to resize, Reset restores defaults (in-memory only) ---------- */
 (function(){
-  var mq=window.matchMedia('(min-width:1024px)');
   var wrap=document.querySelector('.wrap'); if(!wrap) return;
+  var mq=window.matchMedia('(min-width:1024px)');
+  function isDesktop(){ return mq.matches; }
+  var GRIP_SVG='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="5" r="1.7"/><circle cx="15" cy="5" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="19" r="1.7"/><circle cx="15" cy="19" r="1.7"/></svg>';
+
   var panels=[];
-  document.querySelectorAll('.wrap section.card').forEach(function(s){ panels.push(s); });
-  if(!panels.length) return;
-  var GRIP='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="5.5" r="1.7"/><circle cx="15" cy="5.5" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18.5" r="1.7"/><circle cx="15" cy="18.5" r="1.7"/></svg>';
-  panels.forEach(function(sec){
-    var h=sec.querySelector('.card-h');
-    if(h){
-      var b=document.createElement('button');
-      b.type='button'; b.className='panel-grip'; b.title='Drag to move'; b.setAttribute('aria-label','Drag to move panel');
-      b.innerHTML=GRIP;
-      h.insertBefore(b,h.firstChild);
-    }
-    var er=document.createElement('div'); er.className='resize-edge-r'; er.setAttribute('aria-hidden','true'); sec.appendChild(er);
-    var eb=document.createElement('div'); eb.className='resize-edge-b'; eb.setAttribute('aria-hidden','true'); sec.appendChild(eb);
-  });
-  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-  function isVis(el){ var r=el.getBoundingClientRect(); return r.width>10&&r.height>10; }
-  function areaOf(el){
-    var cs=window.getComputedStyle(el);
-    return {rs:cs.gridRowStart,re:cs.gridRowEnd,cs:cs.gridColumnStart,ce:cs.gridColumnEnd};
+  function addPanel(el,area,host){
+    if(!el) return null;
+    var p={el:el,area:area,host:host||el.querySelector('.card-h'),tx:0,ty:0};
+    panels.push(p); return p;
   }
-  function setArea(el,a){ el.style.gridRowStart=a.rs; el.style.gridRowEnd=a.re; el.style.gridColumnStart=a.cs; el.style.gridColumnEnd=a.ce; }
-  function swapAreas(a,b){ var aa=areaOf(a), ab=areaOf(b); setArea(a,ab); setArea(b,aa); }
-  function trackIndex(tracks,pos){
-    var acc=0;
-    for(var i=0;i<tracks.length;i++){ acc+=tracks[i]; if(pos<=acc+6) return i; acc+=12; }
-    return tracks.length-1;
+  var pProgram  =addPanel(document.getElementById('secProgram'),'program');
+  var pCapture  =addPanel(document.getElementById('secCapture'),'main');
+  var pLive     =addPanel(document.querySelector('.live-card'),'main');
+  var pFormat   =addPanel(document.querySelector('.format-card'),'format',document.querySelector('.format-card .fmt-bar'));
+  var pMoments  =addPanel(document.getElementById('secMoments'),'moments');
+  var pInspector=addPanel(document.getElementById('secInspector'),'inspector');
+  var pSound    =addPanel(document.querySelector('.insp-panel[data-panel="sound"]'),'sound');
+  var pCaptions =addPanel(document.querySelector('.insp-panel[data-panel="captions"]'),'captions');
+  var pText     =addPanel(document.querySelector('.insp-panel[data-panel="text"]'),'text');
+  var pStyle    =addPanel(document.querySelector('.insp-panel[data-panel="style"]'),'style');
+  var pExport   =addPanel(document.getElementById('secExport'),'export');
+  var pTimeline =addPanel(document.getElementById('secTimeline'),'timeline');
+  var pClips    =addPanel(document.querySelector('.clips-strip'),'clips');
+
+  /* Panels sharing a screen swap places when one is dragged onto the other */
+  var groups=[[pProgram,pMoments],[pSound,pCaptions],[pStyle,pText],[pFormat,pInspector],[pExport,pClips]];
+  function groupOf(p){ for(var i=0;i<groups.length;i++){ if(groups[i].indexOf(p)>-1) return groups[i]; } return null; }
+  function effArea(p){ return p.el.style.gridArea||p.area; }
+  function swapAreas(a,b){ var aa=effArea(a),ab=effArea(b); a.el.style.gridArea=ab; b.el.style.gridArea=aa; }
+
+  /* Per-screen grid sizes, kept in memory only */
+  var store={};
+  function curScreen(){ return wrap.getAttribute('data-screen')||''; }
+  function applyScreenLayout(){
+    var s=store[curScreen()]||{};
+    wrap.style.gridTemplateColumns=s.cols||'';
+    wrap.style.gridTemplateRows=s.rows||'';
   }
-  function retrack(tracks,i,desired){
-    var w=tracks.slice();
-    var total=tracks[i]+tracks[i+1];
-    desired=clamp(desired,70,total-70);
-    w[i]=desired; w[i+1]=total-desired;
-    return w.map(function(x){ return x.toFixed(1)+'fr'; }).join(' ');
+  if(window.MutationObserver) new MutationObserver(applyScreenLayout).observe(wrap,{attributes:true,attributeFilter:['data-screen']});
+
+  function setTimelineH(topY){
+    var wr=wrap.getBoundingClientRect();
+    var h=wr.bottom-topY-12;
+    h=Math.max(150,Math.min(wr.height*0.6,h));
+    if(!store.cut) store.cut={};
+    store.cut.rows='minmax(0,1fr) '+Math.round(h)+'px';
+    if(curScreen()==='cut') applyScreenLayout();
   }
-  var drag=null;
-  document.addEventListener('pointerdown',function(e){
-    if(!mq.matches||e.button!==0||!e.target.closest) return;
-    var grip=e.target.closest('.panel-grip');
-    var edgeR=e.target.closest('.resize-edge-r');
-    var edgeB=e.target.closest('.resize-edge-b');
-    if(grip){
-      var secG=grip.closest('section'); if(!secG) return;
-      drag={mode:'swap',el:secG,swapped:null};
-      secG.classList.add('unit-dragging');
-      document.body.classList.add('layout-dragging');
-      e.preventDefault(); return;
+
+  function dragSession(bodyCls,onMove,onUp){
+    document.body.classList.add(bodyCls);
+    function mv(ev){ onMove(ev); }
+    function up(ev){
+      document.removeEventListener('pointermove',mv);
+      document.removeEventListener('pointerup',up);
+      document.body.classList.remove(bodyCls);
+      if(onUp) onUp(ev);
     }
-    if(edgeR){
-      drag={mode:'col',el:edgeR.parentElement};
-      document.body.classList.add('layout-resizing-x'); e.preventDefault(); return;
-    }
-    if(edgeB){
-      drag={mode:'row',el:edgeB.parentElement};
-      document.body.classList.add('layout-resizing-y'); e.preventDefault(); return;
-    }
-  });
-  document.addEventListener('pointermove',function(e){
-    if(!drag) return;
-    var p=drag.el, pr=p.getBoundingClientRect();
-    if(drag.mode==='swap'){
-      for(var i=0;i<panels.length;i++){
-        var q=panels[i]; if(q===p||!isVis(q)) continue;
-        var r=q.getBoundingClientRect();
-        if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){
-          if(drag.swapped!==q){ swapAreas(p,q); drag.swapped=q; }
-          return;
-        }
+    document.addEventListener('pointermove',mv);
+    document.addEventListener('pointerup',up);
+  }
+
+  /* ---- Grips: one per panel header ---- */
+  function startGripDrag(e,p){
+    if(!isDesktop()) return;
+    e.preventDefault();
+    var sx=e.clientX, sy=e.clientY, moved=false, target=null;
+    var grp=groupOf(p);
+    var freeMove=(p===pCapture||p===pLive);
+    var baseTX=p.tx, baseTY=p.ty;
+    dragSession('layout-dragging',function(ev){
+      var dx=ev.clientX-sx, dy=ev.clientY-sy;
+      if(!moved&&Math.abs(dx)+Math.abs(dy)>4){ moved=true; p.el.classList.add('unit-dragging'); }
+      if(!moved) return;
+      if(grp){
+        var el=document.elementFromPoint(ev.clientX,ev.clientY);
+        var card=(el&&el.closest)? el.closest('section.card'):null;
+        var t=null;
+        if(card){ for(var i=0;i<grp.length;i++){ if(grp[i]&&grp[i].el===card&&grp[i]!==p) t=grp[i]; } }
+        if(t!==target){ if(target) target.el.classList.remove('drop-target'); target=t; if(target) target.el.classList.add('drop-target'); }
+      }else if(freeMove){
+        var wr=wrap.getBoundingClientRect();
+        p.tx=Math.max(-wr.width*0.3,Math.min(wr.width*0.3,baseTX+dx));
+        p.ty=Math.max(-wr.height*0.25,Math.min(wr.height*0.25,baseTY+dy));
+        p.el.style.transform='translate('+Math.round(p.tx)+'px,'+Math.round(p.ty)+'px)';
+      }else if(p===pTimeline){
+        setTimelineH(ev.clientY);
       }
-      return;
-    }
-    if(drag.mode==='col'){
-      var cols=window.getComputedStyle(wrap).gridTemplateColumns.split(' ').map(parseFloat).filter(function(n){ return n>0; });
-      if(cols.length<2) return;
-      var idx=trackIndex(cols,pr.left-wrap.getBoundingClientRect().left-20+pr.width/2);
-      if(idx>=cols.length-1) return;
-      wrap.style.gridTemplateColumns=retrack(cols,idx,e.clientX-pr.left);
-      return;
-    }
-    if(drag.mode==='row'){
-      var rows=window.getComputedStyle(wrap).gridTemplateRows.split(' ').map(parseFloat).filter(function(n){ return n>0; });
-      if(rows.length<2) return;
-      var idy=trackIndex(rows,pr.top-wrap.getBoundingClientRect().top-10+pr.height/2);
-      if(idy>=rows.length-1) return;
-      wrap.style.gridTemplateRows=retrack(rows,idy,e.clientY-pr.top);
-      return;
-    }
-  });
-  function endDrag(){
-    if(!drag) return;
-    if(drag.el) drag.el.classList.remove('unit-dragging');
-    drag=null;
-    document.body.classList.remove('layout-dragging');
-    document.body.classList.remove('layout-resizing-y');
-    document.body.classList.remove('layout-resizing-x');
+    },function(){
+      p.el.classList.remove('unit-dragging');
+      if(target){ target.el.classList.remove('drop-target'); swapAreas(p,target); target=null; if(typeof toast==='function') toast('Panels swapped — Reset layout to undo'); }
+    });
   }
-  document.addEventListener('pointerup',endDrag);
-  document.addEventListener('pointercancel',endDrag);
-  var resetBtn=document.getElementById('layoutResetBtn');
-  if(resetBtn) resetBtn.addEventListener('click',function(){
-    wrap.style.gridTemplateColumns='';
-    wrap.style.gridTemplateRows='';
-    panels.forEach(function(sec){
-      sec.style.gridRowStart=''; sec.style.gridRowEnd='';
-      sec.style.gridColumnStart=''; sec.style.gridColumnEnd='';
+  panels.forEach(function(p){
+    if(!p||!p.host) return;
+    var b=document.createElement('button');
+    b.type='button'; b.className='panel-grip has-tip tip-below';
+    b.setAttribute('data-tip','Drag to move panel');
+    b.setAttribute('aria-label','Drag to move panel');
+    b.innerHTML=GRIP_SVG;
+    p.host.insertBefore(b,p.host.firstChild);
+    b.addEventListener('pointerdown',function(e){ startGripDrag(e,p); });
+  });
+
+  /* ---- Resize edges ---- */
+  function addEdge(p,cls){
+    if(!p) return null;
+    var d=document.createElement('div'); d.className=cls; d.setAttribute('aria-hidden','true');
+    p.el.appendChild(d); return d;
+  }
+  function colResize(screen){
+    return function(e){
+      if(!isDesktop()) return;
+      e.preventDefault();
+      dragSession('layout-resizing-x',function(ev){
+        var wr=wrap.getBoundingClientRect();
+        var x=ev.clientX-wr.left;
+        x=Math.max(280,Math.min(wr.width-280,x));
+        if(!store[screen]) store[screen]={};
+        store[screen].cols='minmax(0,'+Math.round(x)+'px) minmax(0,1fr)';
+        if(curScreen()===screen) applyScreenLayout();
+      });
+    };
+  }
+  [[pProgram,'cut'],[pSound,'captions'],[pStyle,'template'],[pFormat,'reframe'],[pExport,'export']].forEach(function(pair){
+    var edge=addEdge(pair[0],'resize-edge-r');
+    if(edge) edge.addEventListener('pointerdown',colResize(pair[1]));
+  });
+  var tlTop=addEdge(pTimeline,'resize-edge-t');
+  if(tlTop) tlTop.addEventListener('pointerdown',function(e){
+    if(!isDesktop()) return;
+    e.preventDefault();
+    dragSession('layout-resizing-y',function(ev){ setTimelineH(ev.clientY); });
+  });
+  [pProgram,pMoments].forEach(function(p){
+    var edge=addEdge(p,'resize-edge-b');
+    if(edge) edge.addEventListener('pointerdown',function(e){
+      if(!isDesktop()) return;
+      e.preventDefault();
+      dragSession('layout-resizing-y',function(ev){ setTimelineH(ev.clientY+12); });
     });
   });
+  var capBottom=addEdge(pCapture,'resize-edge-b');
+  if(capBottom) capBottom.addEventListener('pointerdown',function(e){
+    if(!isDesktop()) return;
+    e.preventDefault();
+    var startH=pCapture.el.offsetHeight, startY=e.clientY;
+    dragSession('layout-resizing-y',function(ev){
+      var wr=wrap.getBoundingClientRect();
+      var h=Math.max(240,Math.min(wr.height,startH+(ev.clientY-startY)));
+      pCapture.el.style.height=Math.round(h)+'px';
+      pCapture.el.classList.add('panel-sized');
+    });
+  });
+
+  /* ---- Reset layout ---- */
+  var rb=document.getElementById('resetLayoutBtn');
+  if(rb) rb.addEventListener('click',function(){
+    store={};
+    wrap.style.gridTemplateColumns='';
+    wrap.style.gridTemplateRows='';
+    panels.forEach(function(p){
+      if(!p) return;
+      p.el.style.gridArea='';
+      p.el.style.transform='';
+      p.el.style.height='';
+      p.el.classList.remove('panel-sized');
+      p.tx=0; p.ty=0;
+    });
+    if(typeof toast==='function') toast('Layout reset');
+  });
+})();
+</script>
+<script>
+/* ---------- CAPCUT-STYLE EDITOR: one screen, tool rail switches only the side panel ---------- */
+(function(){
+  var wrap=document.querySelector('.wrap'); if(!wrap) return;
+  function forceScreen(){
+    if(wrap.getAttribute('data-screen')!=='editor') wrap.setAttribute('data-screen','editor');
+  }
+  function setTool(name){
+    wrap.setAttribute('data-tool',name);
+    document.querySelectorAll('.cf-tab').forEach(function(b){
+      b.classList.toggle('active',b.getAttribute('data-tool')===name);
+    });
+    wrap.scrollTop=0;
+  }
+  forceScreen();
+  setTool('media');
+  if(window.MutationObserver) new MutationObserver(forceScreen).observe(wrap,{attributes:true,attributeFilter:['data-screen']});
+  document.querySelectorAll('.cf-tab').forEach(function(b){
+    b.addEventListener('click',function(){ setTool(b.getAttribute('data-tool')); });
+  });
+  document.querySelectorAll('.cf-export').forEach(function(b){
+    b.addEventListener('click',function(){
+      var ob=document.getElementById('outExportBtn');
+      if(ob) ob.click();
+    });
+  });
+  /* Once a video is in, jump straight to Cut — no step hunting */
+  var advanced=false;
+  setInterval(function(){
+    if(advanced) return;
+    if(window.hasVideo || (window.videoFile)){
+      advanced=true;
+      if(wrap.getAttribute('data-tool')==='media') setTool('cut');
+    }
+  },700);
+})();
+</script>
+<script>
+/* Mobile only: Trim / Make clip / Clip length live inside the Cut
+   panel, so the timeline stays a thin always-visible strip and the
+   Cut sheet is the single scrolling area. On desktop the block
+   returns to the timeline's side column, untouched. Listeners were
+   bound by id / class at init and survive the move. */
+(function(){
+  var side=document.querySelector('#secTimeline .tl-side');
+  var tlBody=document.querySelector('#secTimeline .tl-body');
+  var moments=document.getElementById('secMoments');
+  if(!side||!tlBody||!moments) return;
+  var mq=window.matchMedia('(max-width:1023px)');
+  function place(){
+    if(mq.matches){ if(side.parentNode!==moments) moments.appendChild(side); }
+    else if(side.parentNode!==tlBody){ tlBody.appendChild(side); }
+  }
+  place();
+  if(mq.addEventListener) mq.addEventListener('change',place);
+  else if(mq.addListener) mq.addListener(place);
+})();
+</script>
+<script>
+/* ---------- MOBILE V7 (research section 6): toggle-close tools,
+   header back/gear, import-gate format chips, content-only
+   timeline lanes, timeline edge-trim, tap-to-play ---------- */
+(function(){
+  var wrap=document.querySelector('.wrap'); if(!wrap) return;
+  var mq=window.matchMedia('(max-width:1023px)');
+  function $(id){ return document.getElementById(id); }
+  function clearActives(){ document.querySelectorAll('.cf-tab').forEach(function(b){ b.classList.remove('active'); }); }
+  function setToolDirect(name){
+    wrap.setAttribute('data-tool',name);
+    document.querySelectorAll('.cf-tab').forEach(function(b){ b.classList.toggle('active',b.getAttribute('data-tool')===name); });
+  }
+  function closePanel(){ wrap.setAttribute('data-tool','none'); clearActives(); }
+
+  /* Tapping the active tool again closes its panel (rule 6.6.20).
+     The capture listener notes the pre-click tool; the editor's own
+     bubble listener re-opens it first, then this one closes it. */
+  var closing=false;
+  document.addEventListener('click',function(e){
+    var b=e.target.closest? e.target.closest('.cf-mobilebar .cf-tab') : null;
+    if(b && wrap.getAttribute('data-tool')===b.getAttribute('data-tool')) closing=true;
+  },true);
+  document.querySelectorAll('.cf-mobilebar .cf-tab').forEach(function(b){
+    b.addEventListener('click',function(){ if(closing){ closing=false; closePanel(); } });
+  });
+
+  /* Header back: closes the open panel */
+  var back=$('cfBackBtn');
+  if(back) back.addEventListener('click',function(){ closePanel(); });
+
+  /* Header gear: server settings live here, not in the editor flow */
+  var gear=$('cfGearBtn');
+  if(gear) gear.addEventListener('click',function(){
+    var adv=document.querySelector('#secCapture .adv');
+    var on=document.body.classList.toggle('cf-srv');
+    gear.setAttribute('aria-pressed',on?'true':'false');
+    if(adv) adv.open=on;
+    if(on) setToolDirect('media');
+  });
+
+  /* Import gate: format chips drive the real size selector */
+  var fmtSel=$('fmtSelect');
+  document.querySelectorAll('.cf-gate-chip').forEach(function(ch){
+    ch.addEventListener('click',function(){
+      document.querySelectorAll('.cf-gate-chip').forEach(function(x){ x.classList.toggle('active',x===ch); });
+      if(fmtSel){ fmtSel.value=ch.getAttribute('data-gfmt'); fmtSel.dispatchEvent(new Event('change',{bubbles:true})); }
+    });
+  });
+  /* Drag-and-drop anywhere on the gate screen loads the file */
+  var gateSec=$('secCapture');
+  if(gateSec){
+    ['dragover','dragenter'].forEach(function(ev){ gateSec.addEventListener(ev,function(e){ if(!window.hasVideo) e.preventDefault(); }); });
+    gateSec.addEventListener('drop',function(e){
+      if(window.hasVideo) return;
+      e.preventDefault();
+      var f=e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f && typeof loadFile==='function') loadFile(f);
+    });
+  }
+
+  /* Timeline lanes: only lanes with content are shown (rule 6.5.15) */
+  var tracks=document.querySelectorAll('#tlTracks .tl-track');
+  function syncLanes(){
+    if(!tracks.length) return;
+    var cap=window.captions, kf=window.cropKeyframes;
+    if(tracks[1]) tracks[1].classList.toggle('cf-has', !!(cap && cap.length));
+    if(tracks[2]) tracks[2].classList.toggle('cf-has', !!(kf && kf.length));
+    if(tracks[3]) tracks[3].classList.toggle('cf-has', !!((window.musicName) || (window.waveData && window.waveData.length)));
+  }
+  syncLanes(); setInterval(syncLanes,800);
+
+  /* Trim by dragging the film lane's edges; middle seeks (rule 6.5.16/17) */
+  var lane=$('filmLane');
+  if(lane){
+    var dragMode=null, dragLen=0, dragIn=0;
+    lane.addEventListener('pointerdown',function(e){
+      if(!window.hasVideo || !window.video || !video.duration) return;
+      var r=lane.getBoundingClientRect(), f=(e.clientX-r.left)/r.width;
+      dragMode= f<0.14 ? 'in' : (f>0.86 ? 'out' : 'seek');
+      dragIn=window.inPoint||0; dragLen=Math.max(0.1,(window.outPoint||0)-dragIn);
+      lane.setPointerCapture(e.pointerId);
+      applyDrag(e);
+    });
+    lane.addEventListener('pointermove',function(e){ if(dragMode) applyDrag(e); });
+    lane.addEventListener('pointerup',function(){ dragMode=null; });
+    lane.addEventListener('pointercancel',function(){ dragMode=null; });
+    function applyDrag(e){
+      var r=lane.getBoundingClientRect(), f=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+      var t=dragIn+f*dragLen;
+      if(dragMode==='in' && typeof setIn==='function') setIn(t);
+      else if(dragMode==='out' && typeof setOut==='function') setOut(t);
+      else if(dragMode==='seek') video.currentTime=t;
+    }
+  }
+
+  /* Preview: centred play button when paused + tap video to toggle */
+  var stageEl=$('stage'), vid=$('video');
+  if(stageEl && vid){
+    var ov=document.createElement('button');
+    ov.id='cfPlayOverlay'; ov.type='button'; ov.setAttribute('aria-label','Play');
+    ov.innerHTML='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+    stageEl.appendChild(ov);
+    function syncOv(){ ov.classList.toggle('on', !!(window.hasVideo && vid.paused)); }
+    ov.addEventListener('click',function(e){ e.stopPropagation(); var pb=$('playBtn'); if(pb) pb.click(); });
+    vid.addEventListener('play',syncOv); vid.addEventListener('pause',syncOv); vid.addEventListener('ended',syncOv);
+    setInterval(syncOv,700); syncOv();
+    var pdX=0, pdY=0;
+    stageEl.addEventListener('pointerdown',function(e){ pdX=e.clientX; pdY=e.clientY; });
+    stageEl.addEventListener('pointerup',function(e){
+      if(!mq.matches || !window.hasVideo) return;
+      if(Math.hypot(e.clientX-pdX,e.clientY-pdY)>8) return;
+      if(e.target.closest && e.target.closest('button,.text-item,.cf-handle,#cfPlayOverlay')) return;
+      var pb=$('playBtn'); if(pb) pb.click();
+    });
+  }
 })();
 </script>
 </body>
