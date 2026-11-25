@@ -1497,6 +1497,277 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   .topbar h1{font-size:17px}
 }
 </style>
+<style id="cf-desktop-trim">
+/* ============================================================
+   DESKTOP TRIM — no scroll box in the Trim section.
+   The timeline's side column was 368px wide and ~165px tall
+   holding ~475px of controls (Trim, Make clip, Clip length),
+   so half of it hid below the fold behind a chunky native
+   scrollbar and the panel had to be scrolled like a web page.
+   Now the timeline strip is taller, the side column is wide,
+   and everything sits in a three-column grid that is fully
+   on screen at once: Trim (In/Out boxes, sliders, Set In/Out,
+   duration chips) spans columns 1-2, Make clip + Clip length
+   stack in column 3. Nothing in this section scrolls, ever.
+   Mobile is untouched — Trim lives in the Cut sheet there.
+   ============================================================ */
+@media(min-width:1024px){
+  /* Taller timeline strip, wider side column */
+  .wrap[data-screen="editor"]{grid-template-rows:minmax(0,1fr) minmax(0,1fr) 266px}
+  .wrap[data-screen="editor"] .tl-body{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr)}
+
+  /* Side column: a grid, not a scroll box */
+  .wrap[data-screen="editor"] .tl-side{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(0,.95fr);grid-template-rows:auto minmax(0,1fr);gap:10px 18px;align-content:start;height:100%;max-height:none;overflow:visible;padding-right:0}
+  .wrap[data-screen="editor"] .tl-side .sec{grid-column:1/3;grid-row:1/3}
+  .wrap[data-screen="editor"] .tl-side #addClipBtn{grid-column:3;grid-row:1;align-self:start}
+  .wrap[data-screen="editor"] .tl-side>div[style]{grid-column:3;grid-row:2;align-self:start}
+  .wrap[data-screen="editor"] .tl-side>div[style] .sec-t{margin-bottom:6px !important}
+
+  /* Trim's own two columns: In/Out boxes full width on top,
+     the two sliders side by side, Set In/Out next to the
+     duration chips — one compact block, all visible */
+  .wrap[data-screen="editor"] .tl-side .sec{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 16px;align-content:start}
+  .wrap[data-screen="editor"] .tl-side .sec-t{grid-column:1/-1;grid-row:1;margin-bottom:0}
+  .wrap[data-screen="editor"] .tl-side .io-grid{grid-column:1/-1;grid-row:2;margin:0}
+  .wrap[data-screen="editor"] .tl-side .io-box{padding:8px 12px}
+  .wrap[data-screen="editor"] .tl-side .io-box input{font-size:17px}
+  .wrap[data-screen="editor"] .tl-side .sec>.ctl-row:nth-of-type(3){grid-column:1;grid-row:3}
+  .wrap[data-screen="editor"] .tl-side .sec>.ctl-row:nth-of-type(4){grid-column:2;grid-row:3}
+  .wrap[data-screen="editor"] .tl-side .sec>.btn-row{grid-column:1;grid-row:4;margin-top:0 !important}
+  .wrap[data-screen="editor"] .tl-side .sec>.chips{grid-column:2;grid-row:4;margin-top:0 !important;flex-wrap:nowrap}
+  .wrap[data-screen="editor"] .tl-side .ctl-row{grid-template-columns:28px minmax(0,1fr) 40px;gap:8px;margin:0}
+  .wrap[data-screen="editor"] .tl-side input[type=range]{height:22px}
+
+  /* Compact chips and custom-length row in the side column */
+  .wrap[data-screen="editor"] .tl-side .chip{min-height:34px;padding:6px 11px;font-size:12.5px}
+  .wrap[data-screen="editor"] .tl-side .clip-len-custom{margin-top:8px;flex-wrap:nowrap}
+  .wrap[data-screen="editor"] .tl-side .clip-len-custom label{min-width:0}
+  .wrap[data-screen="editor"] .tl-side .clip-len-custom input{min-height:38px}
+}
+/* Narrower desktops: chips wrap to two rows, so the side
+   column takes a bigger share and the strip grows a touch */
+@media(min-width:1024px) and (max-width:1280px){
+  .wrap[data-screen="editor"]{grid-template-rows:minmax(0,1fr) minmax(0,1fr) 292px}
+  .wrap[data-screen="editor"] .tl-body{grid-template-columns:minmax(0,.8fr) minmax(0,1.5fr)}
+  .wrap[data-screen="editor"] .tl-side .sec>.chips{flex-wrap:wrap}
+  .wrap[data-screen="editor"] .tl-side .clip-len-custom input{min-height:34px}
+}
+</style>
+<style id="cf-track-icons">
+/* ============================================================
+   TIMELINE TRACK ICONS + PRO TOOLTIPS — Premiere Pro / Photoshop
+   style. The timeline track headers are icons now, not bare
+   text: a track icon (film / CC / crop / waveform), an EYE
+   toggle on every visual track and a SPEAKER toggle on the
+   audio track. Hovering or keyboard-focusing any icon pops a
+   small dark text label beside it — the way Photoshop and
+   Premiere Pro name their tools — so an icon is never a
+   mystery. The desktop tool bar's icons get the same popup,
+   and on phones (no hover) tapping a tool-bar icon flashes
+   its name in a bubble above the bar.
+   ============================================================ */
+.tl-name{flex-wrap:nowrap;gap:3px}
+.tl-ic{display:inline-flex;align-items:center;justify-content:center;color:var(--faint);flex-shrink:0;border-radius:5px;padding:2px}
+.tl-ic .ic{width:15px;height:15px}
+.tl-track:hover .tl-ic{color:var(--text)}
+.tl-track.off .tl-ic{opacity:.35}
+.tl-tog{display:inline-flex;align-items:center;justify-content:center;width:26px;height:24px;min-height:24px;padding:0;border:1px solid transparent;border-radius:5px;background:transparent;color:var(--muted);cursor:pointer;flex-shrink:0}
+.tl-tog:hover{color:#fff;background:var(--panel2);border-color:var(--line-strong)}
+.tl-tog .ic{width:16px;height:16px}
+.tl-tog .ic-off{display:none}
+.tl-tog.off{color:var(--faint)}
+.tl-tog.off .ic-on{display:none}
+.tl-tog.off .ic-off{display:block}
+.tl-track.off .tl-lane{opacity:.32;filter:grayscale(.65)}
+/* What the toggles actually switch in the preview */
+.stage.cf-src-off video{visibility:hidden}
+.stage.cf-cap-off .cap-overlay{display:none !important}
+.stage.cf-kf-off .crop-frame{display:none !important}
+/* The pro tooltip popup: dark label + little arrow, right of the icon */
+.tl-tip{position:relative}
+.tl-tip::after{content:attr(data-tip);position:absolute;left:calc(100% + 10px);top:50%;transform:translate(0,-50%);background:#2B1B45;color:#fff;font-family:"Inter",sans-serif;font-size:11px;font-weight:600;letter-spacing:.02em;line-height:1.25;padding:5px 9px;border-radius:6px;border:1px solid var(--line-strong);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:96;box-shadow:0 6px 18px rgba(0,0,0,.45);text-transform:none}
+.tl-tip::before{content:"";position:absolute;left:calc(100% + 4px);top:50%;transform:translateY(-50%);border:6px solid transparent;border-right-color:#2B1B45;border-left:0;opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:96}
+.tl-tip:hover::after,.tl-tip:hover::before,.tl-tip:focus-visible::after,.tl-tip:focus-visible::before{opacity:1}
+/* Desktop tool bar: same popup, dropping under the icon */
+@media(hover:hover) and (min-width:1024px){
+  .cf-bar .cf-tab{position:relative}
+  .cf-bar .cf-tab::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 8px);transform:translate(-50%,-4px);background:#2B1B45;color:#fff;font-family:"Inter",sans-serif;font-size:11px;font-weight:600;letter-spacing:.02em;line-height:1.25;padding:5px 9px;border-radius:6px;border:1px solid var(--line-strong);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:96;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+  .cf-bar .cf-tab:hover::after,.cf-bar .cf-tab:focus-visible::after{opacity:1;transform:translate(-50%,0)}
+}
+/* Phone tool bar: name bubble shown by the script on tap */
+#cfToolTipBubble{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translate(-50%,6px);background:#2B1B45;color:#fff;font-family:"Inter",sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.03em;padding:7px 14px;border-radius:8px;border:1px solid var(--line-strong);box-shadow:0 8px 22px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:97}
+#cfToolTipBubble.on{opacity:1;transform:translate(-50%,0)}
+@media(min-width:1024px){#cfToolTipBubble{display:none}}
+/* Phones: the 44px header column fits the toggle alone — the
+   track-type icon steps aside, its name lives in the tooltip */
+@media(max-width:1023px){
+  .tl-name{justify-content:center}
+  .tl-name .tl-ic{display:none}
+  .tl-tog{width:28px;height:26px;min-height:26px}
+  .tl-tog .ic{width:17px;height:17px}
+}
+</style>
+<style id="cf-desktop-noscroll">
+/* ============================================================
+   DESKTOP: NO SCROLLBARS IN ANY PANEL — everything fits.
+   The rail panels (Captions, Audio, Text, Style, Media, Cut,
+   Size, Live, Export) and the timeline's Trim column were
+   overflow-y:auto boxes, so a chunky vertical scrollbar sat
+   on their right edge and half the controls hid below the
+   fold. Now every desktop panel is a fixed-height flex
+   column with overflow hidden, tighter spacing, and its
+   growing list area shrunk to whatever room is left.
+   Nothing in the desktop editor scrolls. Ever.
+   ============================================================ */
+@media(min-width:1024px){
+  /* Kill the scroll boxes (and hide any stray scrollbar) */
+  .wrap[data-screen="editor"] .tl-side,
+  .wrap[data-screen="editor"] .insp-panel,
+  .wrap[data-screen="editor"] #secCapture,
+  .wrap[data-screen="editor"] #secMoments,
+  .wrap[data-screen="editor"] #momentsList,
+  .wrap[data-screen="editor"] #secInspector,
+  .wrap[data-screen="editor"] .live-card,
+  .wrap[data-screen="editor"] .clips-strip,
+  .wrap[data-screen="editor"] .clips-strip .list{overflow:hidden !important;scrollbar-width:none !important}
+  .wrap[data-screen="editor"] .tl-side::-webkit-scrollbar,
+  .wrap[data-screen="editor"] .insp-panel::-webkit-scrollbar,
+  .wrap[data-screen="editor"] #secCapture::-webkit-scrollbar,
+  .wrap[data-screen="editor"] #secMoments::-webkit-scrollbar,
+  .wrap[data-screen="editor"] #secInspector::-webkit-scrollbar,
+  .wrap[data-screen="editor"] .live-card::-webkit-scrollbar,
+  .wrap[data-screen="editor"] .clips-strip .list::-webkit-scrollbar{display:none !important;width:0 !important;height:0 !important}
+
+  /* Rail panels become flex columns: header fixed, body fills */
+  .wrap[data-screen="editor"][data-tool="media"] #secCapture{display:flex !important;flex-direction:column;height:100%}
+  .wrap[data-screen="editor"][data-tool="captions"] .insp-panel[data-panel="captions"],
+  .wrap[data-screen="editor"][data-tool="audio"] .insp-panel[data-panel="sound"],
+  .wrap[data-screen="editor"][data-tool="text"] .insp-panel[data-panel="text"],
+  .wrap[data-screen="editor"][data-tool="style"] .insp-panel[data-panel="style"]{display:flex !important;flex-direction:column;height:100%}
+  .wrap[data-screen="editor"] .insp-panel .card-h{flex:0 0 auto;padding:12px 16px 10px}
+  .wrap[data-screen="editor"] .insp-panel .pad{flex:1 1 auto;min-height:0;padding:10px 16px 14px;gap:9px}
+
+  /* CAPTIONS — compact: one-line status, short caption box,
+     the caption list takes only the room that is left */
+  .wrap[data-screen="editor"] .insp-panel[data-panel="captions"] select{min-height:38px;padding:7px 10px}
+  .wrap[data-screen="editor"] .insp-panel[data-panel="captions"] textarea{height:42px;min-height:42px;resize:none;padding:8px 11px}
+  .wrap[data-screen="editor"] .insp-panel[data-panel="captions"] #capList{flex:1 1 auto;min-height:0;overflow:hidden}
+
+  /* AUDIO — tighter rows so source, voice and music all fit */
+  .wrap[data-screen="editor"] .insp-panel[data-panel="sound"] .sec{margin-top:8px;padding-top:10px}
+  .wrap[data-screen="editor"] .insp-panel[data-panel="sound"] .ctl-row{margin:0}
+  .wrap[data-screen="editor"] .insp-panel[data-panel="sound"] input[type=range]{height:22px}
+  .wrap[data-screen="editor"] .insp-panel[data-panel="sound"] #voiceAutoBtn{min-height:42px !important;margin-top:6px !important}
+
+  /* TEXT — the added-text list shrinks instead of scrolling */
+  .wrap[data-screen="editor"] .insp-panel[data-panel="text"] #textList{flex:1 1 auto;min-height:0;overflow:hidden}
+
+  /* MEDIA — link box, drop zone and Auto clip all on screen */
+  .wrap[data-screen="editor"] #secCapture .card-h{flex:0 0 auto}
+  .wrap[data-screen="editor"] #secCapture .yt-box{margin:10px 14px 0;padding:12px}
+  .wrap[data-screen="editor"] #secCapture .drop{margin:10px 14px 0;padding:12px}
+  .wrap[data-screen="editor"] #secCapture .autoclip-wrap{padding:10px 14px 12px !important}
+
+  /* CUT — moments grid fills the panel, no scroll */
+  .wrap[data-screen="editor"] #secMoments .card-h{flex:0 0 auto}
+  .wrap[data-screen="editor"] #momentsList{flex:1 1 auto;min-height:0;align-content:start}
+
+  /* SIZE — inspector compacts: smaller ease curve, tighter secs */
+  .wrap[data-screen="editor"][data-tool="size"] #secInspector{display:flex !important;flex-direction:column;height:100%}
+  .wrap[data-screen="editor"] #secInspector .pad{flex:1 1 auto;min-height:0;gap:8px;padding:10px 16px 12px}
+  .wrap[data-screen="editor"] #secInspector .sec{margin-top:8px;padding-top:10px}
+  .wrap[data-screen="editor"] #secInspector #easeSvg{width:132px;margin-bottom:6px}
+  .wrap[data-screen="editor"] #secInspector input[type=range]{height:22px}
+
+  /* LIVE — player capped so link, status and Clip button fit */
+  .wrap[data-screen="editor"] .live-card .live-grid{flex:1 1 auto;min-height:0}
+  .wrap[data-screen="editor"] .live-card .live-player{max-height:190px}
+  .wrap[data-screen="editor"] .live-card .live-moments{overflow:hidden}
+
+  /* EXPORT — clips list fills its strip without scrolling */
+  .wrap[data-screen="editor"][data-tool="export"] .clips-strip .list{flex:1 1 auto;min-height:0}
+
+  /* TRIM — a touch tighter so the whole column sits in the strip */
+  .wrap[data-screen="editor"] .tl-side .io-box{padding:7px 11px}
+  .wrap[data-screen="editor"] .tl-side .io-box input{font-size:16px}
+  .wrap[data-screen="editor"] .tl-side input[type=range]{height:20px}
+  .wrap[data-screen="editor"] .tl-side .chip{min-height:32px}
+}
+/* Short desktop windows: drop the two fade rows and the music
+   file line (same simplification the phone layout already uses)
+   so the Audio panel still fits with no scrollbar */
+@media(min-width:1024px) and (max-height:900px){
+  .wrap[data-screen="editor"] .insp-panel[data-panel="sound"] .ctl-row:has(#fadeInSlider),
+  .wrap[data-screen="editor"] .insp-panel[data-panel="sound"] .ctl-row:has(#fadeOutSlider),
+  .wrap[data-screen="editor"] .insp-panel[data-panel="sound"] .music-name{display:none !important}
+  .wrap[data-screen="editor"] .insp-panel[data-panel="captions"] textarea{height:38px;min-height:38px}
+}
+</style>
+<style id="cf-premiere-panels">
+/* ============================================================
+   PREMIERE PRO–STYLE RESIZABLE PANELS — every panel can be
+   made smaller or bigger by dragging the divider next to it,
+   exactly like Premiere Pro's workspace:
+   · DESKTOP — drag the vertical divider to widen/narrow the
+     right tool rail; drag the horizontal divider above the
+     Timeline to make the Timeline taller/shorter; when two
+     panels are stacked in the rail (Size, Export) drag the
+     divider between them; inside the Timeline drag the
+     divider between the tracks and the Trim column.
+   · PHONE — drag the pill at the top of the Timeline to make
+     it taller/shorter; drag the pill at the top of the open
+     tool panel to make that panel taller/shorter.
+   · Double-click (desktop) or double-tap (phone) any divider
+     resets just that divider. "Reset panels" in the tool bar
+     resets them all. Sizes are kept for the session only.
+   ============================================================ */
+.pp-split{display:none;position:absolute;z-index:44;touch-action:none}
+.pp-split::after{content:"";position:absolute;background:transparent;border-radius:99px;transition:background .15s ease}
+.pp-split:hover::after,.pp-split.pp-drag::after{background:var(--accent)}
+.pp-grab{display:none;position:absolute;top:0;left:50%;transform:translateX(-50%);width:76px;height:20px;z-index:36;touch-action:none;cursor:row-resize}
+.pp-grab::after{content:"";position:absolute;left:50%;top:8px;transform:translateX(-50%);width:38px;height:4px;border-radius:99px;background:var(--line-strong);transition:background .15s ease}
+.pp-grab.pp-drag::after{background:var(--accent)}
+body.pp-resizing-x,body.pp-resizing-x *{cursor:col-resize !important;user-select:none !important}
+body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select:none !important}
+.pp-reset-btn{flex:0 0 auto}
+@media(min-width:1024px){
+  .wrap[data-screen="editor"]{--pp-rail:374px;--pp-tl:266px;--pp-trimw:min(880px,58%);position:relative;grid-template-columns:minmax(0,1fr) var(--pp-rail) !important;grid-template-rows:var(--pp-r1,1fr) minmax(0,1fr) var(--pp-tl) !important}
+  .wrap[data-screen="editor"] .tl-body{position:relative;grid-template-columns:minmax(0,1fr) minmax(0,var(--pp-trimw))}
+  .wrap[data-screen="editor"][data-tool="size"] .format-card{align-self:stretch}
+  .wrap[data-screen="editor"][data-tool="export"] #secExport{align-self:stretch}
+  .pp-split{display:block}
+  .pp-rail{left:calc(100% - var(--pp-rail) - 6px);top:0;bottom:calc(var(--pp-tl) + 14px);width:12px;cursor:col-resize}
+  .pp-rail::after{left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%)}
+  .pp-tl{left:0;right:0;height:12px;bottom:calc(var(--pp-tl) + 4px);cursor:row-resize}
+  .pp-tl::after{top:50%;left:0;right:0;height:2px;transform:translateY(-50%)}
+  .pp-edge-b{left:10px;right:10px;bottom:-6px;height:12px;cursor:row-resize}
+  .pp-edge-b::after{top:50%;left:0;right:0;height:2px;transform:translateY(-50%)}
+  .pp-trim{top:0;bottom:0;width:12px;right:calc(var(--pp-trimw) + 11px);cursor:col-resize}
+  .pp-trim::after{left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%)}
+}
+@media(min-width:1024px) and (max-width:1280px){
+  /* Narrower desktops: same bigger share the Trim column had
+     before the panels change, so nothing in it wraps or clips */
+  .wrap[data-screen="editor"]{--pp-trimw:64%}
+}
+@media(max-width:1023px){
+  .pp-grab{display:block}
+  body:has(.stage.no-video) .pp-grab{display:none !important}
+  .wrap[data-screen="editor"][data-tool="none"] .pp-grab-sheet{display:none !important}
+  .wrap[data-screen="editor"] #secTimeline{position:relative;flex:0 0 var(--pp-m-tl,118px) !important;height:var(--pp-m-tl,118px) !important}
+  .wrap[data-screen="editor"] #secCapture,.wrap[data-screen="editor"] #secMoments,.wrap[data-screen="editor"] #secInspector,.wrap[data-screen="editor"] .clips-strip,.wrap[data-screen="editor"] .live-card,.wrap[data-screen="editor"] .insp-panel{position:relative}
+  /* A sized tool panel keeps exactly the height the user dragged it to */
+  .wrap.pp-sheet-sized[data-tool="media"] #secCapture,
+  .wrap.pp-sheet-sized[data-tool="cut"] #secMoments,
+  .wrap.pp-sheet-sized[data-tool="captions"] .insp-panel[data-panel="captions"],
+  .wrap.pp-sheet-sized[data-tool="audio"] .insp-panel[data-panel="sound"],
+  .wrap.pp-sheet-sized[data-tool="text"] .insp-panel[data-panel="text"],
+  .wrap.pp-sheet-sized[data-tool="style"] .insp-panel[data-panel="style"],
+  .wrap.pp-sheet-sized[data-tool="live"] .live-card,
+  .wrap.pp-sheet-sized[data-tool="size"] #secInspector,
+  .wrap.pp-sheet-sized[data-tool="export"] .clips-strip{flex:0 0 var(--pp-m-sheet,260px) !important;height:var(--pp-m-sheet,260px);overflow-y:auto !important;overflow-x:hidden}
+}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -1928,10 +2199,10 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
     <div class="tl-body">
       <div class="tl-tracks" id="tlTracks">
         <div class="tl-ruler-row"><span class="tl-name"></span><div class="tl-ruler" id="tlRuler"></div></div>
-        <div class="tl-track tl-track-src"><span class="tl-name">Source</span><div class="tl-lane film-lane" id="filmLane"></div></div>
-        <div class="tl-track tl-track-cap"><span class="tl-name">Captions</span><div class="tl-lane cap-lane" id="capLane"></div></div>
-        <div class="tl-track tl-track-kf"><span class="tl-name">Reframe</span><div class="tl-lane kf-lane" id="kfLane"></div></div>
-        <div class="tl-track tl-track-wave"><span class="tl-name">Audio</span><div class="tl-lane wave-lane">    <div class="wave-wrap">
+        <div class="tl-track tl-track-src"><span class="tl-name"><span class="tl-ic tl-tip" data-tip="Source track" tabindex="0" role="img" aria-label="Source track"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M8 4v16M16 4v16M3.5 9H8M3.5 15H8M16 9h4.5M16 15h4.5"/></svg></span><button class="tl-tog tl-tip" id="tlEyeSrc" type="button" data-tip="Hide source video" aria-label="Hide source video" aria-pressed="true"><svg class="ic ic-on" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 4.6C6.9 4.6 2.6 7.7 1.1 12c1.5 4.3 5.8 7.4 10.9 7.4S21.4 16.3 22.9 12C21.4 7.7 17.1 4.6 12 4.6zm0 12.3a4.9 4.9 0 1 1 0-9.8 4.9 4.9 0 0 1 0 9.8z"/></svg><svg class="ic ln ic-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 16"/><path d="M10.5 5.9A10.6 10.6 0 0 1 12 5.8c5.1 0 9.4 3.1 10.9 6.2a11.6 11.6 0 0 1-3.3 3.8M6.7 7.9A11.4 11.4 0 0 0 1.1 12c1.5 4.3 5.8 7.4 10.9 7.4 1.4 0 2.8-.2 4-.7"/><path d="M9.9 9.9a2.9 2.9 0 0 0 4 4"/></svg></button></span><div class="tl-lane film-lane" id="filmLane"></div></div>
+        <div class="tl-track tl-track-cap"><span class="tl-name"><span class="tl-ic tl-tip" data-tip="Captions track" tabindex="0" role="img" aria-label="Captions track"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10.5 10.2a2.4 2.4 0 1 0 0 3.6M17.5 10.2a2.4 2.4 0 1 0 0 3.6"/></svg></span><button class="tl-tog tl-tip" id="tlEyeCap" type="button" data-tip="Hide captions on preview" aria-label="Hide captions on preview" aria-pressed="true"><svg class="ic ic-on" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 4.6C6.9 4.6 2.6 7.7 1.1 12c1.5 4.3 5.8 7.4 10.9 7.4S21.4 16.3 22.9 12C21.4 7.7 17.1 4.6 12 4.6zm0 12.3a4.9 4.9 0 1 1 0-9.8 4.9 4.9 0 0 1 0 9.8z"/></svg><svg class="ic ln ic-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 16"/><path d="M10.5 5.9A10.6 10.6 0 0 1 12 5.8c5.1 0 9.4 3.1 10.9 6.2a11.6 11.6 0 0 1-3.3 3.8M6.7 7.9A11.4 11.4 0 0 0 1.1 12c1.5 4.3 5.8 7.4 10.9 7.4 1.4 0 2.8-.2 4-.7"/><path d="M9.9 9.9a2.9 2.9 0 0 0 4 4"/></svg></button></span><div class="tl-lane cap-lane" id="capLane"></div></div>
+        <div class="tl-track tl-track-kf"><span class="tl-name"><span class="tl-ic tl-tip" data-tip="Reframe track" tabindex="0" role="img" aria-label="Reframe track"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/></svg></span><button class="tl-tog tl-tip" id="tlEyeKf" type="button" data-tip="Hide reframe frame" aria-label="Hide reframe frame" aria-pressed="true"><svg class="ic ic-on" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 4.6C6.9 4.6 2.6 7.7 1.1 12c1.5 4.3 5.8 7.4 10.9 7.4S21.4 16.3 22.9 12C21.4 7.7 17.1 4.6 12 4.6zm0 12.3a4.9 4.9 0 1 1 0-9.8 4.9 4.9 0 0 1 0 9.8z"/></svg><svg class="ic ln ic-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 16"/><path d="M10.5 5.9A10.6 10.6 0 0 1 12 5.8c5.1 0 9.4 3.1 10.9 6.2a11.6 11.6 0 0 1-3.3 3.8M6.7 7.9A11.4 11.4 0 0 0 1.1 12c1.5 4.3 5.8 7.4 10.9 7.4 1.4 0 2.8-.2 4-.7"/><path d="M9.9 9.9a2.9 2.9 0 0 0 4 4"/></svg></button></span><div class="tl-lane kf-lane" id="kfLane"></div></div>
+        <div class="tl-track tl-track-wave"><span class="tl-name"><span class="tl-ic tl-tip" data-tip="Audio track" tabindex="0" role="img" aria-label="Audio track"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></span><button class="tl-tog tl-tip" id="tlSpkAudio" type="button" data-tip="Mute audio" aria-label="Mute audio" aria-pressed="true"><svg class="ic ln ic-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3.5L12 18.5v-13L7.5 10H4z"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg><svg class="ic ln ic-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3.5L12 18.5v-13L7.5 10H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg></button></span><div class="tl-lane wave-lane">    <div class="wave-wrap">
       <canvas id="wave" width="900" height="78"></canvas>
       <p class="wave-note" id="waveNote"></p>
     </div></div></div>
@@ -4516,6 +4787,234 @@ renderTimeline(true);
       if(e.target.closest && e.target.closest('button,.text-item,.cf-handle,#cfPlayOverlay')) return;
       var pb=$('playBtn'); if(pb) pb.click();
     });
+  }
+})();
+</script>
+<script>
+/* Timeline track icons: eye toggles (Source / Captions / Reframe),
+   speaker toggle (Audio), pro tooltip labels on the tool bars, and
+   the tap-name bubble for the icon-only phone bar. */
+(function(){
+  function $(id){ return document.getElementById(id); }
+  var stage=$('stage');
+  function bindEye(id,offClass,onTip,offTip){
+    var b=$(id); if(!b) return;
+    b.addEventListener('click',function(){
+      var off=b.classList.toggle('off');
+      b.setAttribute('aria-pressed',off?'false':'true');
+      b.setAttribute('data-tip',off?offTip:onTip);
+      b.setAttribute('aria-label',off?offTip:onTip);
+      if(stage&&offClass) stage.classList.toggle(offClass,off);
+      var track=b.closest?b.closest('.tl-track'):null;
+      if(track) track.classList.toggle('off',off);
+    });
+  }
+  bindEye('tlEyeSrc','cf-src-off','Hide source video','Show source video');
+  bindEye('tlEyeCap','cf-cap-off','Hide captions on preview','Show captions on preview');
+  bindEye('tlEyeKf','cf-kf-off','Hide reframe frame','Show reframe frame');
+  var spk=$('tlSpkAudio');
+  if(spk){
+    function syncSpk(){
+      var m=!!window.isMuted;
+      spk.classList.toggle('off',m);
+      spk.setAttribute('aria-pressed',m?'false':'true');
+      spk.setAttribute('data-tip',m?'Unmute audio':'Mute audio');
+      spk.setAttribute('aria-label',m?'Unmute audio':'Mute audio');
+      var track=spk.closest?spk.closest('.tl-track'):null;
+      if(track) track.classList.toggle('off',m);
+    }
+    spk.addEventListener('click',function(){ var mc=$('muteChip'); if(mc) mc.click(); syncSpk(); });
+    setInterval(syncSpk,900); syncSpk();
+  }
+  /* Desktop tool bar: give every icon a Photoshop-style name popup */
+  var tips={media:'Media — add your video',cut:'Cut — find moments & trim',captions:'Captions — auto subtitles',audio:'Audio — volume, voice & music',text:'Text — titles on the video',style:'Style — caption look & hook',size:'Size — format & crop',live:'Live — clip from a stream'};
+  document.querySelectorAll('.cf-tab').forEach(function(t){
+    var k=t.getAttribute('data-tool');
+    if(k&&tips[k]&&!t.getAttribute('data-tip')) t.setAttribute('data-tip',tips[k]);
+  });
+  /* Phone bar is icons only: tapping one flashes its name in a bubble */
+  var bubble=document.createElement('div');
+  bubble.id='cfToolTipBubble'; bubble.setAttribute('aria-hidden','true');
+  document.body.appendChild(bubble);
+  var bt=null;
+  document.querySelectorAll('.cf-mobilebar .cf-tab').forEach(function(t){
+    t.addEventListener('click',function(){
+      var name=t.getAttribute('aria-label')||(t.querySelector('span')?t.querySelector('span').textContent:'');
+      if(!name) return;
+      bubble.textContent=name; bubble.classList.add('on');
+      if(bt) clearTimeout(bt);
+      bt=setTimeout(function(){ bubble.classList.remove('on'); },1100);
+    });
+  });
+})();
+</script>
+<script>
+/* ---------- PREMIERE PRO–STYLE RESIZABLE PANELS ----------
+   Drag dividers to make any panel smaller or bigger.
+   Desktop: Preview|Rail divider, Timeline top divider, the
+   divider between the two stacked rail panels (Size/Export),
+   and the tracks|Trim divider inside the Timeline.
+   Phone: pill at the top of the Timeline and at the top of
+   the open tool panel. Double-click / double-tap a divider
+   resets it; "Reset panels" (desktop tool bar) resets all.
+   In-memory only — nothing is stored. */
+(function(){
+  var wrap=document.querySelector('.wrap'); if(!wrap) return;
+  var mqD=window.matchMedia('(min-width:1024px)');
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+  function toastMsg(m){ if(typeof toast==='function') toast(m); }
+  function dragSession(cls,onMove,onUp){
+    document.body.classList.add(cls);
+    function mv(ev){ onMove(ev); }
+    function up(ev){
+      document.removeEventListener('pointermove',mv);
+      document.removeEventListener('pointerup',up);
+      document.body.classList.remove(cls);
+      if(onUp) onUp(ev);
+    }
+    document.addEventListener('pointermove',mv);
+    document.addEventListener('pointerup',up);
+  }
+  /* Bind a divider: drag with onMove(ev,startState); double-click
+     or double-tap calls onReset. */
+  function bindHandle(el,cls,onStart,onMove,onReset){
+    if(!el) return;
+    var lastTap=0;
+    el.addEventListener('pointerdown',function(e){
+      var now=Date.now();
+      if(now-lastTap<330){ lastTap=0; if(onReset) onReset(); return; }
+      lastTap=now;
+      e.preventDefault();
+      var st=onStart? onStart(e) : null;
+      el.classList.add('pp-drag');
+      dragSession(cls,function(ev){ if(onMove) onMove(ev,st); },function(){ el.classList.remove('pp-drag'); });
+    });
+    el.addEventListener('dblclick',function(e){ e.preventDefault(); if(onReset) onReset(); });
+  }
+  function mkDiv(cls,title){
+    var d=document.createElement('div');
+    d.className=cls; d.setAttribute('aria-hidden','true');
+    if(title) d.title=title;
+    return d;
+  }
+  var DRAG_TIP='Drag to resize panel — double-click resets';
+
+  /* ================= DESKTOP ================= */
+  /* Preview | right rail (vertical) */
+  var railH=mkDiv('pp-split pp-rail',DRAG_TIP); wrap.appendChild(railH);
+  bindHandle(railH,'pp-resizing-x',null,function(ev){
+    if(!mqD.matches) return;
+    var wr=wrap.getBoundingClientRect();
+    var w=wr.right-ev.clientX-16;
+    wrap.style.setProperty('--pp-rail',Math.round(clamp(w,260,Math.min(620,wr.width*0.55)))+'px');
+  },function(){ wrap.style.removeProperty('--pp-rail'); });
+
+  /* Timeline top edge (horizontal) */
+  var tlH=mkDiv('pp-split pp-tl',DRAG_TIP); wrap.appendChild(tlH);
+  bindHandle(tlH,'pp-resizing-y',null,function(ev){
+    if(!mqD.matches) return;
+    var wr=wrap.getBoundingClientRect();
+    var h=wr.bottom-ev.clientY-10;
+    wrap.style.setProperty('--pp-tl',Math.round(clamp(h,170,Math.min(480,wr.height*0.55)))+'px');
+  },function(){ wrap.style.removeProperty('--pp-tl'); });
+
+  /* Stacked rail panels divider — lives on the bottom edge of the
+     top rail panel (Format for Size, Export for Export) */
+  var splitH=mkDiv('pp-split pp-edge-b',DRAG_TIP);
+  var fmtCard=document.querySelector('.format-card');
+  var secExport=document.getElementById('secExport');
+  bindHandle(splitH,'pp-resizing-y',null,function(ev){
+    if(!mqD.matches) return;
+    var wr=wrap.getBoundingClientRect();
+    var tl=document.getElementById('secTimeline');
+    var tlh=tl? tl.offsetHeight : 266;
+    var avail=wr.height-16-tlh-20;
+    if(avail<120) return;
+    var s=clamp((ev.clientY-wr.top-6)/avail,0.22,0.78);
+    wrap.style.setProperty('--pp-r1',(s/(1-s)).toFixed(3)+'fr');
+  },function(){ wrap.style.removeProperty('--pp-r1'); });
+
+  /* Timeline tracks | Trim column (vertical, inside the timeline) */
+  var tlBody=document.querySelector('#secTimeline .tl-body');
+  var trimH=mkDiv('pp-split pp-trim',DRAG_TIP);
+  if(tlBody) tlBody.appendChild(trimH);
+  bindHandle(trimH,'pp-resizing-x',null,function(ev){
+    if(!mqD.matches || !tlBody) return;
+    var br=tlBody.getBoundingClientRect();
+    var w=br.right-12-ev.clientX+5;
+    wrap.style.setProperty('--pp-trimw',Math.round(clamp(w,320,br.width*0.72))+'px');
+  },function(){ wrap.style.removeProperty('--pp-trimw'); });
+
+  /* ================= PHONE ================= */
+  /* Timeline pill: drag up = taller timeline */
+  var tlSec=document.getElementById('secTimeline');
+  var tlGrab=mkDiv('pp-grab pp-grab-tl','Drag to resize the timeline');
+  if(tlSec) tlSec.appendChild(tlGrab);
+  bindHandle(tlGrab,'pp-resizing-y',function(){ return { h: tlSec? tlSec.offsetHeight : 118, y: null }; },function(ev,st){
+    if(mqD.matches || !st) return;
+    if(st.y===null){ st.y=ev.clientY; return; }
+    var wr=wrap.getBoundingClientRect();
+    var h=st.h+(st.y-ev.clientY);
+    wrap.style.setProperty('--pp-m-tl',Math.round(clamp(h,84,Math.min(230,wr.height*0.4)))+'px');
+  },function(){ wrap.style.removeProperty('--pp-m-tl'); });
+
+  /* Tool panel pill: drag up = taller panel. The pill moves into
+     whichever panel is open. */
+  var sheetGrab=mkDiv('pp-grab pp-grab-sheet','Drag to resize this panel');
+  var sheetHosts={
+    media:document.getElementById('secCapture'),
+    cut:document.getElementById('secMoments'),
+    captions:document.querySelector('.insp-panel[data-panel="captions"]'),
+    audio:document.querySelector('.insp-panel[data-panel="sound"]'),
+    text:document.querySelector('.insp-panel[data-panel="text"]'),
+    style:document.querySelector('.insp-panel[data-panel="style"]'),
+    size:document.getElementById('secInspector'),
+    live:document.querySelector('.live-card'),
+    export:document.querySelector('.clips-strip')
+  };
+  function sheetHost(){ return sheetHosts[wrap.getAttribute('data-tool')]||null; }
+  function placeSheetGrab(){
+    var h=sheetHost();
+    if(h && sheetGrab.parentNode!==h) h.appendChild(sheetGrab);
+    else if(!h && sheetGrab.parentNode) sheetGrab.parentNode.removeChild(sheetGrab);
+    /* The desktop stacked-panel divider follows the same tool */
+    var top=null;
+    var t=wrap.getAttribute('data-tool');
+    if(t==='size') top=fmtCard; else if(t==='export') top=secExport;
+    if(top && splitH.parentNode!==top) top.appendChild(splitH);
+    else if(!top && splitH.parentNode) splitH.parentNode.removeChild(splitH);
+  }
+  bindHandle(sheetGrab,'pp-resizing-y',function(){
+    var h=sheetHost(); return { h: h? h.offsetHeight : 0, y: null };
+  },function(ev,st){
+    if(mqD.matches || !st || !st.h) return;
+    if(st.y===null){ st.y=ev.clientY; return; }
+    var wr=wrap.getBoundingClientRect();
+    var h=st.h+(st.y-ev.clientY);
+    wrap.classList.add('pp-sheet-sized');
+    wrap.style.setProperty('--pp-m-sheet',Math.round(clamp(h,130,wr.height*0.45))+'px');
+  },function(){
+    wrap.classList.remove('pp-sheet-sized');
+    wrap.style.removeProperty('--pp-m-sheet');
+  });
+  placeSheetGrab();
+  if(window.MutationObserver) new MutationObserver(placeSheetGrab).observe(wrap,{attributes:true,attributeFilter:['data-tool']});
+
+  /* ================= RESET ALL (desktop tool bar) ================= */
+  var bar=document.querySelector('.cf-bar');
+  if(bar){
+    var rb=document.createElement('button');
+    rb.type='button'; rb.className='btn pp-reset-btn';
+    rb.textContent='Reset panels';
+    rb.title='Reset all panel sizes';
+    rb.setAttribute('aria-label','Reset all panel sizes');
+    rb.addEventListener('click',function(){
+      ['--pp-rail','--pp-tl','--pp-r1','--pp-trimw','--pp-m-tl','--pp-m-sheet'].forEach(function(v){ wrap.style.removeProperty(v); });
+      wrap.classList.remove('pp-sheet-sized');
+      toastMsg('Panel sizes reset');
+    });
+    var exp=bar.querySelector('.cf-export');
+    if(exp) bar.insertBefore(rb,exp); else bar.appendChild(rb);
   }
 })();
 </script>
