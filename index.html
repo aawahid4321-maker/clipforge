@@ -1977,6 +1977,105 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
   }
 }
 </style>
+<style id="cf-panels-never-hide-tools">
+/* ============================================================
+   RESIZED PANELS NEVER HIDE THEIR TOOLS — the "no scrollbars
+   on desktop" pass above set overflow:hidden on every rail
+   panel, which only works at the DEFAULT panel sizes. The
+   panels are drag-resizable: pull the Timeline taller (or
+   drag the stacked-panel split) and the rail rows shrink,
+   so the Media panel's Drop zone + Auto clip, the lower
+   Audio / Size rows and the Export list were clipped away
+   with no way to reach them — the tools simply vanished.
+   Now, on desktop:
+   · Every rail panel scrolls INSIDE itself when its content
+     is taller than the shrunken panel — a thin scrollbar
+     that only shows up when there is something to scroll.
+   · Flex bodies inside the panels no longer compress below
+     their content height; the panel scroll takes over.
+   · The stacked top panels (Format, Export) scroll too
+     instead of spilling over the panel beneath them.
+   · The Preview import gate scrolls the same way, so its
+     title, DROP VIDEO button and YouTube row stay reachable
+     when the Preview is made short.
+   Nothing changes at default sizes: panels that fit do not
+   scroll and show no scrollbar, exactly as before.
+   ============================================================ */
+@media(min-width:1024px){
+  .wrap[data-screen="editor"] #secCapture,
+  .wrap[data-screen="editor"] #secMoments,
+  .wrap[data-screen="editor"] #momentsList,
+  .wrap[data-screen="editor"] #secInspector,
+  .wrap[data-screen="editor"] .insp-panel,
+  .wrap[data-screen="editor"] .live-card,
+  .wrap[data-screen="editor"] .format-card,
+  .wrap[data-screen="editor"] #secExport,
+  .wrap[data-screen="editor"] .clips-strip .list,
+  .wrap[data-screen="editor"] .insp-panel[data-panel="captions"] #capList,
+  .wrap[data-screen="editor"] .insp-panel[data-panel="text"] #textList{
+    overflow-y:auto !important;overflow-x:hidden !important;
+    scrollbar-width:thin !important;scrollbar-color:var(--line-strong) transparent;
+  }
+  .wrap[data-screen="editor"] #secCapture::-webkit-scrollbar,
+  .wrap[data-screen="editor"] #secMoments::-webkit-scrollbar,
+  .wrap[data-screen="editor"] #momentsList::-webkit-scrollbar,
+  .wrap[data-screen="editor"] #secInspector::-webkit-scrollbar,
+  .wrap[data-screen="editor"] .insp-panel::-webkit-scrollbar,
+  .wrap[data-screen="editor"] .live-card::-webkit-scrollbar,
+  .wrap[data-screen="editor"] .format-card::-webkit-scrollbar,
+  .wrap[data-screen="editor"] #secExport::-webkit-scrollbar,
+  .wrap[data-screen="editor"] .clips-strip .list::-webkit-scrollbar{display:block !important;width:8px !important;height:8px !important}
+  .wrap[data-screen="editor"] #secCapture::-webkit-scrollbar-thumb,
+  .wrap[data-screen="editor"] #secMoments::-webkit-scrollbar-thumb,
+  .wrap[data-screen="editor"] #momentsList::-webkit-scrollbar-thumb,
+  .wrap[data-screen="editor"] #secInspector::-webkit-scrollbar-thumb,
+  .wrap[data-screen="editor"] .insp-panel::-webkit-scrollbar-thumb,
+  .wrap[data-screen="editor"] .live-card::-webkit-scrollbar-thumb,
+  .wrap[data-screen="editor"] .format-card::-webkit-scrollbar-thumb,
+  .wrap[data-screen="editor"] #secExport::-webkit-scrollbar-thumb,
+  .wrap[data-screen="editor"] .clips-strip .list::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:99px}
+  /* Panel bodies keep their full content height — the panel's
+     own scroll, not compression, absorbs a short panel */
+  .wrap[data-screen="editor"] .insp-panel .pad,
+  .wrap[data-screen="editor"] #secInspector .pad{flex:1 0 auto}
+  .wrap[data-screen="editor"] #secCapture .yt-box,
+  .wrap[data-screen="editor"] #secCapture .drop,
+  .wrap[data-screen="editor"] #secCapture .autoclip-wrap{flex-shrink:0}
+  /* Import gate: centre when it fits, scroll when it doesn't —
+     margin:auto centring keeps the top reachable, unlike
+     place-items:center which clips it for good */
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .video-empty{
+    display:flex;overflow-y:auto;overflow-x:hidden;
+    scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent;
+  }
+  .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .gate-inner{margin:auto}
+}
+</style>
+<style id="cf-one-link-panel">
+/* ============================================================
+   ONE LINK PANEL — the Preview's empty stage used to carry a
+   second, duplicate add-video panel of its own (title, size
+   chips and a second YouTube link box with its own Load),
+   sitting next to the Media panel's identical link box: two
+   panels, two Loads, and no clear path to Auto clip. Now the
+   stage keeps ONE action — the upload button, and dropping a
+   file anywhere on the stage still works — and the Media
+   panel is the only link panel there is: its one field takes
+   a live link or any YouTube link, and Load / Enter / paste
+   loads it AND starts the free-server Auto clip in the same
+   step.
+   The preview iframe also gets a click-to-play shield: a
+   cross-origin iframe swallows every wheel event over it,
+   so right after pasting a link, scrolling died whenever the
+   pointer sat over the preview — it felt like the scroll had
+   locked. The shield hands wheel deltas back to the panel's
+   own scroll; one click steps it aside and the preview
+   plays.
+   ============================================================ */
+.yt-preview{position:relative}
+.yt-shield{position:absolute;inset:0;z-index:2;cursor:pointer}
+.yt-shield.off{display:none}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -2055,21 +2154,7 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
         <div class="safe ui-zone ui-bot" id="uiBot">Captions</div>
         <div class="focus-dot" id="focusDot"></div>
         <div class="video-empty" id="videoEmpty" role="button" tabindex="0" aria-label="Upload a video file"><div class="gate-inner">
-          <b class="gate-title">Add a video to start</b>
-          <span class="gate-sub">Drop a video file here, or paste a YouTube link — your preview appears in this space.</span>
           <button class="btn primary icon-btn gate-drop" type="button" id="stageUploadBtn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.2 15.4V6.1L7.9 9.4 6.4 7.9 12 2.3l5.6 5.6-1.5 1.5-3.3-3.3v9.3zM4.5 18.6h15V21h-15z"/></svg><span class="lbl-upload">Upload video</span><span class="lbl-drop">DROP VIDEO</span><span class="gate-drop-s" id="gateFmtLabel">9:16 Shorts</span></button>
-          <div class="gate-chips" role="group" aria-label="Output size">
-            <button type="button" class="cf-gate-chip gate-chip active" data-gfmt="vertical">9:16</button>
-            <button type="button" class="cf-gate-chip gate-chip" data-gfmt="wide">16:9</button>
-            <button type="button" class="cf-gate-chip gate-chip" data-gfmt="square">1:1</button>
-          </div>
-          <div class="gate-or" aria-hidden="true"><span>or paste a YouTube link</span></div>
-          <div class="gate-yt">
-            <input type="url" id="gateYtInput" placeholder="youtube.com/watch?v=…" autocomplete="off" spellcheck="false" aria-label="YouTube link">
-            <button class="btn primary" id="gateYtLoadBtn" type="button">Load</button>
-          </div>
-          <p class="gate-status" id="gateYtStatus" role="status"></p>
-          <span class="gate-hint">MP4 · WebM · MOV — drag &amp; drop works on this whole panel</span>
         </div></div>
         <span class="live-dot" id="liveDot">Preview</span>
         <span class="fmt-tag" id="fmtTag">9:16</span>
@@ -2113,7 +2198,7 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
         <h2>Add your video</h2>
       </div>
     </div>
-    <p class="src-hint">Drop a video file below, or paste a YouTube link — then press <b>Auto clip</b>.</p>
+    <p class="src-hint">Paste a YouTube link or drop a video file below.</p>
 
     <div class="yt-box">
       <label for="ytInput">YouTube link</label>
@@ -2122,7 +2207,7 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
         <button class="btn primary" id="ytLoadBtn" type="button">Load</button>
       </div>
       <p class="yt-status" id="ytStatus" role="status"></p>
-      <div class="yt-preview" id="ytPreview"><iframe id="ytFrame" title="YouTube video preview" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+      <div class="yt-preview" id="ytPreview"><iframe id="ytFrame" title="YouTube video preview" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="yt-shield" id="ytShield" title="Play preview"></div></div>
       <div class="yt-fallback" id="ytFallback">
         <img id="ytThumb" alt="YouTube video thumbnail">
         <p>Preview blocked. Download it and drop the file below.</p>
@@ -2132,7 +2217,7 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
         </div>
       </div>
       <div class="yt-help" id="ytHelp">
-        <p>Drop the file below to clip.</p>
+        <p>Auto clip runs from this link on the free server.</p>
         <div class="btn-row">
           <a class="btn" id="ytOpenBtn2" href="https://www.youtube.com" target="_blank" rel="noopener">Open on YouTube</a>
           <button class="btn accent" id="ytDropBtn" type="button">Choose file</button>
@@ -2644,6 +2729,7 @@ function loadFile(file){
 }
 /* ---------- YOUTUBE LINK ---------- */
 var ytId='';
+var autoClipForId='';
 function ytIdFromUrl(raw){
   if(!raw) return '';
   var s=String(raw).trim();
@@ -2668,12 +2754,13 @@ function showYtFallback(id){
 }
 function loadYouTube(){
   var raw=$('ytInput').value, id=ytIdFromUrl(raw), st=$('ytStatus');
-  if(!raw.trim()){ st.className='yt-status'; st.textContent=''; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); if(typeof updateServerClipVisibility==='function') updateServerClipVisibility(); return; }
-  if(!id){ st.className='yt-status err'; st.textContent='Invalid link'; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); ytId=''; if(typeof updateServerClipVisibility==='function') updateServerClipVisibility(); return; }
+  if(!raw.trim()){ st.className='yt-status'; st.textContent=''; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); ytId=''; autoClipForId=''; if(typeof updateServerClipVisibility==='function') updateServerClipVisibility(); return; }
+  if(!id){ st.className='yt-status err'; st.textContent='Invalid link'; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); ytId=''; autoClipForId=''; if(typeof updateServerClipVisibility==='function') updateServerClipVisibility(); return; }
   ytId=id;
   hideYtFallback();
   $('ytOpenBtn2').href='https://www.youtube.com/watch?v='+id;
   $('ytPreview').classList.add('on');
+  var shEl=$('ytShield'); if(shEl) shEl.classList.remove('off');
   st.className='yt-status ok'; st.textContent='Loaded';
   $('ytHelp').classList.add('on');
   toast('YouTube video loaded');
@@ -2696,10 +2783,40 @@ function loadYouTube(){
   if(typeof updateServerClipVisibility==='function') updateServerClipVisibility();
 }
 var ytTimer=null;
-$('ytLoadBtn').addEventListener('click',loadYouTube);
-$('ytInput').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); loadYouTube(); } });
-$('ytInput').addEventListener('paste',function(){ setTimeout(loadYouTube,60); });
-$('ytInput').addEventListener('input',function(){ clearTimeout(ytTimer); var id=ytIdFromUrl(this.value); if(id&&id!==ytId){ ytTimer=setTimeout(loadYouTube,500); } });
+/* One panel, one action: Load, Enter or paste loads the link
+   AND starts the free-server Auto clip for it in the same
+   step — once per link, so typing in the box (which only
+   refreshes the preview) never fires extra server jobs. */
+function loadLinkAndClip(){
+  loadYouTube();
+  if(!ytId||videoFile) return;
+  if(autoClipForId===ytId) return;
+  if(!getServerWorkerUrl()) return;
+  autoClipForId=ytId;
+  startServerClip();
+  var sb=$('serverClipBtn'); if(sb){ try{ sb.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){} }
+}
+$('ytLoadBtn').addEventListener('click',loadLinkAndClip);
+$('ytInput').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); loadLinkAndClip(); } });
+$('ytInput').addEventListener('paste',function(){ setTimeout(loadLinkAndClip,60); });
+$('ytInput').addEventListener('input',function(){ clearTimeout(ytTimer); var id=ytIdFromUrl(this.value); if(id&&id!==ytId){ ytTimer=setTimeout(function(){ var id2=ytIdFromUrl($('ytInput').value); if(id2&&id2!==ytId) loadYouTube(); },500); } });
+/* Click-to-play shield over the preview: the cross-origin
+   iframe swallows wheel events, which felt like the scroll
+   locking up right after a paste. The shield hands wheel
+   deltas to the nearest scrolling ancestor instead; a click
+   steps it aside so the preview can play. */
+var ytShieldEl=$('ytShield');
+if(ytShieldEl){
+  ytShieldEl.addEventListener('click',function(){ ytShieldEl.classList.add('off'); });
+  ytShieldEl.addEventListener('wheel',function(e){
+    var el=ytShieldEl.parentElement;
+    while(el&&el!==document.body){
+      var cs=window.getComputedStyle(el);
+      if((cs.overflowY==='auto'||cs.overflowY==='scroll')&&el.scrollHeight>el.clientHeight){ el.scrollTop+=e.deltaY; e.preventDefault(); return; }
+      el=el.parentElement;
+    }
+  },{passive:false});
+}
 $('ytDropBtn').addEventListener('click',function(){ var dz=$('dropZone'); dz.scrollIntoView({behavior:'smooth',block:'center'}); setTimeout(function(){ fileInput.click(); },350); });
 $('ytFallbackFileBtn').addEventListener('click',function(){ var dz=$('dropZone'); dz.scrollIntoView({behavior:'smooth',block:'center'}); setTimeout(function(){ fileInput.click(); },350); });
 
@@ -5296,7 +5413,11 @@ renderTimeline(true);
     if(!mqD.matches) return;
     var wr=wrap.getBoundingClientRect();
     var h=wr.bottom-ev.clientY-10;
-    wrap.style.setProperty('--pp-tl',Math.round(clamp(h,170,Math.min(480,wr.height*0.55)))+'px');
+    /* Cap the Timeline so the Preview + rail rows above it always
+       keep a usable share of the window — dragging it to 55% used
+       to crush the rail panels until their tools were cut off */
+    var tlMax=Math.min(480,wr.height*0.55,Math.max(170,wr.height-470));
+    wrap.style.setProperty('--pp-tl',Math.round(clamp(h,170,tlMax))+'px');
   },function(){ wrap.style.removeProperty('--pp-tl'); });
 
   /* Stacked rail panels divider — lives on the bottom edge of the
