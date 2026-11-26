@@ -983,7 +983,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   .wrap[data-screen="editor"][data-tool="text"] .insp-panel[data-panel="text"]{display:block !important;grid-column:2;grid-row:1/3;min-height:0;overflow-y:auto}
   .wrap[data-screen="editor"][data-tool="style"] .insp-panel[data-panel="style"]{display:block !important;grid-column:2;grid-row:1/3;min-height:0;overflow-y:auto}
   .wrap[data-screen="editor"][data-tool="size"] .format-card{display:block !important;grid-column:2;grid-row:1;align-self:start}
-  .wrap[data-screen="editor"][data-tool="size"] #secInspector{display:block !important;grid-column:2;grid-row:2;min-height:0;overflow-y:auto}
+  .wrap[data-screen="editor"][data-tool="crop"] #secInspector{display:block !important;grid-column:2;grid-row:1/3;min-height:0;overflow-y:auto}
   .wrap[data-screen="editor"][data-tool="live"] .live-card{display:flex !important;flex-direction:column;grid-column:2;grid-row:1/3;min-height:0;overflow-y:auto}
   .wrap[data-screen="editor"][data-tool="live"] .live-grid{grid-template-columns:1fr;flex:1 1 auto;min-height:0}
   .wrap[data-screen="editor"][data-tool="export"] #secExport{display:block !important;grid-column:2;grid-row:1;align-self:start}
@@ -1055,7 +1055,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   .wrap[data-screen="editor"][data-tool="text"] .insp-panel[data-panel="text"]{display:block !important;order:3}
   .wrap[data-screen="editor"][data-tool="style"] .insp-panel[data-panel="style"]{display:block !important;order:3}
   .wrap[data-screen="editor"][data-tool="size"] .format-card{display:block !important;order:3}
-  .wrap[data-screen="editor"][data-tool="size"] #secInspector{display:block !important;order:4}
+  .wrap[data-screen="editor"][data-tool="crop"] #secInspector{display:block !important;order:3}
   .wrap[data-screen="editor"][data-tool="live"] .live-card{display:block !important;order:3}
   .wrap[data-screen="editor"][data-tool="export"] #secExport{display:block !important;order:3}
   .wrap[data-screen="editor"][data-tool="export"] .clips-strip{display:block !important;order:4}
@@ -1081,7 +1081,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
      needed), second panel takes the rest and scrolls internally */
   .wrap[data-screen="editor"][data-tool="size"] .format-card,
   .wrap[data-screen="editor"][data-tool="export"] #secExport{flex:0 1 auto;min-height:0;width:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
-  .wrap[data-screen="editor"][data-tool="size"] #secInspector,
+  .wrap[data-screen="editor"][data-tool="crop"] #secInspector,
   .wrap[data-screen="editor"][data-tool="export"] .clips-strip{flex:1 1 auto;min-height:72px;width:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
   /* timeline: slimmer label column so the lanes keep their width */
   .wrap[data-screen="editor"] .tl-body{padding:10px 12px 12px}
@@ -1161,7 +1161,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   .wrap[data-screen="editor"][data-tool="text"] .insp-panel[data-panel="text"],
   .wrap[data-screen="editor"][data-tool="style"] .insp-panel[data-panel="style"],
   .wrap[data-screen="editor"][data-tool="live"] .live-card,
-  .wrap[data-screen="editor"][data-tool="size"] #secInspector,
+  .wrap[data-screen="editor"][data-tool="crop"] #secInspector,
   .wrap[data-screen="editor"][data-tool="export"] .clips-strip{flex:1 1 auto;min-height:0}
   .wrap[data-screen="editor"][data-tool="size"] .format-card,
   .wrap[data-screen="editor"][data-tool="export"] #secExport{flex:0 1 auto;min-height:0}
@@ -1438,8 +1438,10 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   .wrap[data-screen="editor"] .insp-panel[data-panel="style"] #styleChips{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding-bottom:2px}
   .wrap[data-screen="editor"] .insp-panel[data-panel="style"] #styleChips .chip{flex:0 0 auto}
 
-  /* Size panel: the format bar only — crop lives on the stage */
+  /* Size panel: the format bar only — crop has its own tab */
   .wrap[data-screen="editor"][data-tool="size"] .format-card{display:block !important}
+  /* Crop panel: the Crop & adjust card, on its own tab */
+  .wrap[data-screen="editor"][data-tool="crop"] #secInspector{display:block !important}
   .wrap[data-screen="editor"] .format-card .fmt-bar{padding:10px 12px;flex-wrap:nowrap;gap:8px}
   .wrap[data-screen="editor"] .format-card .fmt-size-wrap{flex:1 1 auto;min-height:48px;padding:6px 12px}
   .wrap[data-screen="editor"] .format-card .badge{display:none !important}
@@ -1662,8 +1664,8 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   .wrap[data-screen="editor"] #secMoments .card-h{flex:0 0 auto}
   .wrap[data-screen="editor"] #momentsList{flex:1 1 auto;min-height:0;align-content:start}
 
-  /* SIZE — inspector compacts: smaller ease curve, tighter secs */
-  .wrap[data-screen="editor"][data-tool="size"] #secInspector{display:flex !important;flex-direction:column;height:100%}
+  /* CROP — inspector compacts: smaller ease curve, tighter secs */
+  .wrap[data-screen="editor"][data-tool="crop"] #secInspector{display:flex !important;flex-direction:column;height:100%}
   .wrap[data-screen="editor"] #secInspector .pad{flex:1 1 auto;min-height:0;gap:8px;padding:10px 16px 12px}
   .wrap[data-screen="editor"] #secInspector .sec{margin-top:8px;padding-top:10px}
   .wrap[data-screen="editor"] #secInspector #easeSvg{width:132px;margin-bottom:6px}
@@ -1754,7 +1756,7 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
   .wrap.pp-sheet-sized[data-tool="text"] .insp-panel[data-panel="text"],
   .wrap.pp-sheet-sized[data-tool="style"] .insp-panel[data-panel="style"],
   .wrap.pp-sheet-sized[data-tool="live"] .live-card,
-  .wrap.pp-sheet-sized[data-tool="size"] #secInspector,
+  .wrap.pp-sheet-sized[data-tool="crop"] #secInspector,
   .wrap.pp-sheet-sized[data-tool="export"] .clips-strip{flex:0 0 var(--pp-m-sheet,260px) !important;height:var(--pp-m-sheet,260px);overflow-y:auto !important;overflow-x:hidden}
 }
 </style>
@@ -1890,7 +1892,7 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
     width:min(520px,100%);margin:0 auto;text-align:center;
   }
-  .gate-title{display:block;font-family:"Anton","Inter",sans-serif;font-size:27px;font-weight:400;letter-spacing:.04em;text-transform:uppercase;color:var(--text);line-height:1.15}
+  .gate-title{display:block;font-family:"Anton","Inter",sans-serif;font-size:60px;font-weight:400;letter-spacing:.04em;text-transform:uppercase;color:var(--text);line-height:1.15;white-space:nowrap}
   .gate-sub{display:block;margin-top:-5px;font-size:13.5px;font-weight:500;line-height:1.5;color:var(--muted)}
   /* Big DROP VIDEO button — same pink block as the phone gate's
      drop zone, with the current format label under the title */
@@ -1935,7 +1937,7 @@ body.pp-resizing-y,body.pp-resizing-y *{cursor:row-resize !important;user-select
 @media(min-width:1024px) and (max-height:900px){
   .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .video-empty{padding:12px}
   .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .gate-inner{gap:7px}
-  .gate-title{font-size:23px}
+  .gate-title{font-size:48px}
   .wrap[data-screen="editor"] .preview-card .video-empty .gate-drop.btn{min-height:64px;padding:8px 16px}
   .gate-drop .lbl-drop{font-size:18px}
   /* The MP4 · WebM · MOV hint stays visible even in short windows */
@@ -2232,24 +2234,79 @@ body::before{background:linear-gradient(90deg,#2BE4C4 0%,#7B2FF2 28%,#FF4D9D 55%
 /* Selected size chips: Vice City aqua */
 .gate-chip.active,.cf-gate-chip.active{background:#2BE4C4;border-color:#0B4F43;color:#05302A;box-shadow:none}
 /* Empty stage: low-sun horizon glow + palm silhouettes */
-.stage.no-video::before,.stage.no-video::after{content:"";position:absolute;bottom:-6px;width:128px;height:150px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 150'%3E%3Cg fill='none' stroke='%23070218' stroke-width='6' stroke-linecap='round'%3E%3Cpath d='M62 150 C57 112 57 76 66 40'/%3E%3Cpath d='M66 40 C50 20 28 14 8 22'/%3E%3Cpath d='M66 40 C60 16 44 4 24 2'/%3E%3Cpath d='M66 40 C74 16 90 4 110 4'/%3E%3Cpath d='M66 40 C84 22 102 18 116 26'/%3E%3Cpath d='M66 40 C82 32 100 34 112 46'/%3E%3Cpath d='M66 40 C50 32 32 34 20 46'/%3E%3C/g%3E%3C/svg%3E") no-repeat bottom center/contain;opacity:.55;pointer-events:none;z-index:1}
+.stage.no-video::before,.stage.no-video::after{content:"";position:absolute;bottom:-6px;width:128px;height:150px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 240'%3E%3Cg fill='%23070218'%3E%3Cpath d='M88 240 C90 186 95 124 102 72 L116 72 C106 126 104 186 108 240 Z'/%3E%3Cpath d='M106 66 C78 44 46 34 14 40 C44 44 76 54 104 74 Z'/%3E%3Cpath d='M106 68 C74 54 40 54 10 72 C40 66 74 68 104 76 Z'/%3E%3Cpath d='M106 70 C80 68 52 78 30 100 C56 88 82 82 106 78 Z'/%3E%3Cpath d='M106 72 C92 82 82 98 80 118 C88 100 96 88 108 78 Z'/%3E%3Cpath d='M106 66 C134 44 166 34 198 40 C168 44 136 54 108 74 Z'/%3E%3Cpath d='M106 68 C138 54 170 54 198 70 C170 66 138 68 108 76 Z'/%3E%3Cpath d='M106 70 C132 68 160 78 182 100 C156 88 130 82 106 78 Z'/%3E%3Cpath d='M104 64 C100 40 92 20 76 8 C96 14 108 36 110 62 Z'/%3E%3Cpath d='M108 64 C114 38 126 18 144 10 C126 16 114 38 112 64 Z'/%3E%3Ccircle cx='98' cy='76' r='6.5'/%3E%3Ccircle cx='112' cy='78' r='6'/%3E%3Ccircle cx='105' cy='83' r='5.5'/%3E%3C/g%3E%3C/svg%3E") no-repeat bottom center/contain;opacity:.55;pointer-events:none;z-index:1}
 .stage.no-video::before{left:-14px}
 .stage.no-video::after{right:-14px;transform:scaleX(-1)}
 @media(min-width:1024px){
   .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .stage{background:radial-gradient(640px 280px at 50% 112%,rgba(255,122,61,.38),rgba(255,77,157,.16) 48%,rgba(255,77,157,0) 72%),radial-gradient(700px 300px at 50% -30%,rgba(123,47,242,.14),rgba(123,47,242,0) 65%),var(--stage)}
   .wrap[data-screen="editor"] .preview-card:has(.stage.no-video) .stage.cf-drag{background:var(--panel2)}
   /* Gate title: Pricedown, sunset inside the letters */
-  .gate-title{font-family:"Pricedown Bl","Anton",sans-serif;font-size:34px;letter-spacing:.03em;background:linear-gradient(180deg,#FFE95A 0%,#FF9E3D 38%,#FF4D9D 72%,#E044C8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(2.5px 2.5px 0 #150430)}
+  .gate-title{font-family:"Pricedown Bl","Anton",sans-serif;font-size:60px;letter-spacing:.03em;white-space:nowrap;background:linear-gradient(180deg,#FFE95A 0%,#FF9E3D 38%,#FF4D9D 72%,#E044C8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(2.5px 2.5px 0 #150430)}
   /* Gate Load button: sunset fill, still exactly 48px with the field */
   .wrap[data-screen="editor"] .preview-card .video-empty .btn.primary{background:linear-gradient(135deg,#FF7A3D 0%,#FF4D9D 52%,#E044C8 100%);border:1px solid #57103C;box-shadow:none}
   .wrap[data-screen="editor"] .preview-card .video-empty .btn.primary:hover{background:linear-gradient(135deg,#FF7A3D 0%,#FF4D9D 52%,#E044C8 100%);filter:brightness(1.07);opacity:1}
 }
 @media(min-width:1024px) and (max-height:900px){
-  .gate-title{font-size:29px}
+  .gate-title{font-size:48px}
 }
 /* DROP VIDEO: removed — link-only tool, no drop/upload anywhere */
 #dropZone,.drop,.gate-drop{display:none !important}
 .stage.no-video,.video-empty{cursor:default}
+</style>
+<style id="cf-gate-fix">
+/* ============================================================
+   GATE TITLE SIZE + STAGE PREVIEW ON LOAD — two fixes:
+   · The gate title rendered tiny (~13px) even though two
+     blocks set 60px: the old empty-state rule
+     .video-empty span{font-size:12.5px} is a class+element
+     selector (0,1,1) and outranks every .gate-title rule
+     (0,1,0), so the 60px never won. Scoping the size to
+     .video-empty .gate-title (0,2,0) ends the fight.
+   · Loading a YouTube link used to leave the import gate
+     standing in the Preview stage while the only preview
+     sat in the hidden Media panel. Now the stage carries
+     its own cued embed: on load the stage gets .yt-on, the
+     embed fills the stage, the gate prompt steps aside,
+     and the gate's status line stays as a strip over the
+     bottom of the embed, mirroring the free-server Auto
+     clip progress while it runs in the background.
+   ============================================================ */
+@media(min-width:1024px){
+  .video-empty .gate-title{font-size:60px}
+}
+@media(min-width:1024px) and (max-height:900px){
+  .video-empty .gate-title{font-size:48px}
+}
+/* Cued YouTube embed inside the Preview stage */
+.stage-yt{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#000;z-index:2}
+.stage.yt-on .stage-yt{display:block}
+/* Gate prompt steps aside; only its status line remains,
+   as a readable strip over the bottom of the embed */
+.wrap[data-screen="editor"] .preview-card .stage.yt-on .video-empty{
+  inset:auto;top:auto;left:0;right:0;bottom:0;
+  display:flex;align-items:flex-end;justify-content:center;
+  padding:30px 14px 12px;overflow:visible;
+  background:linear-gradient(180deg,rgba(13,5,28,0),rgba(13,5,28,.88));
+  pointer-events:none;cursor:default;z-index:6;
+}
+.wrap[data-screen="editor"] .preview-card .stage.yt-on .gate-inner{margin:0;width:100%;justify-content:center}
+.stage.yt-on .gate-title,.stage.yt-on .gate-sub,.stage.yt-on .gate-yt,.stage.yt-on .gate-chips{display:none !important}
+.stage.yt-on .gate-status.ok,.stage.yt-on .gate-status.err{display:block}
+.wrap[data-screen="editor"] .preview-card .stage.yt-on .gate-status{
+  margin:0;background:rgba(13,5,28,.85);border:1px solid var(--line-strong);
+  padding:7px 14px;border-radius:999px;
+}
+/* Solid frame back once the stage holds a video, not a prompt */
+.wrap[data-screen="editor"] .preview-card:has(.stage.yt-on) .stage{border:1px solid var(--line-strong)}
+/* Phones: a loaded link lifts the import gate the same way —
+   the Preview (with the embed) and the tool bar come back,
+   and the Media sheet returns to being a normal tool panel */
+@media(max-width:1023px){
+  .wrap[data-screen="editor"]:has(.stage.yt-on) #secProgram{display:block !important}
+  body:has(.stage.yt-on) .cf-mobilebar{display:grid !important}
+  .wrap[data-screen="editor"]:has(.stage.yt-on) #secCapture{display:none !important}
+  .wrap[data-screen="editor"][data-tool="media"]:has(.stage.yt-on) #secCapture{display:flex !important;flex-direction:column;align-items:stretch;justify-content:flex-start;width:auto;flex:0 1 auto;padding:11px 12px 12px}
+}
 </style>
 </head>
 <body>
@@ -2283,6 +2340,7 @@ body::before{background:linear-gradient(90deg,#2BE4C4 0%,#7B2FF2 28%,#FF4D9D 55%
   <button class="cf-tab" type="button" data-tool="text"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6V4.5h14V6M12 4.5V19M9 19h6"/></svg><span>Text</span></button>
   <button class="cf-tab" type="button" data-tool="style"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.7 4.6L18.5 10l-4.8 1.9L12 16.5l-1.7-4.6L5.5 10l4.8-1.9L12 3.5z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z"/></svg><span>Style</span></button>
   <button class="cf-tab" type="button" data-tool="size"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3.5" width="10" height="17" rx="1.5"/><path d="M10.5 17.5h3"/></svg><span>Size</span></button>
+  <button class="cf-tab" type="button" data-tool="crop"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"/><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"/></svg><span>Crop</span></button>
   <button class="cf-tab" type="button" data-tool="live"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.2"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M6 6a9 9 0 0 0 0 12M18 6a9 9 0 0 1 0 12"/></svg><span>Live</span></button>
   <span class="cf-spacer"></span>
   <button class="cf-export" type="button"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M7.5 8L12 3.5L16.5 8M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg><span>Export</span></button>
@@ -2312,6 +2370,7 @@ body::before{background:linear-gradient(90deg,#2BE4C4 0%,#7B2FF2 28%,#FF4D9D 55%
     <div class="stage-wrap">
       <div class="stage no-video" id="stage">
         <video id="video" playsinline crossorigin="anonymous"></video>
+        <iframe id="stageYtFrame" class="stage-yt" title="YouTube video preview" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe>
         <div class="video-empty" id="videoEmpty">
           <div class="gate-inner">
             <span class="gate-title">Add your video</span>
@@ -2786,6 +2845,7 @@ body::before{background:linear-gradient(90deg,#2BE4C4 0%,#7B2FF2 28%,#FF4D9D 55%
     <button class="cf-tab" type="button" data-tool="text" aria-label="Text"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6V4.5h14V6M12 4.5V19M9 19h6"/></svg><span>Text</span></button>
     <button class="cf-tab" type="button" data-tool="style" aria-label="Style"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.7 4.6L18.5 10l-4.8 1.9L12 16.5l-1.7-4.6L5.5 10l4.8-1.9L12 3.5z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z"/></svg><span>Style</span></button>
     <button class="cf-tab" type="button" data-tool="size" aria-label="Size"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3.5" width="10" height="17" rx="1.5"/><path d="M10.5 17.5h3"/></svg><span>Size</span></button>
+    <button class="cf-tab" type="button" data-tool="crop" aria-label="Crop"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"/><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"/></svg><span>Crop</span></button>
     <button class="cf-tab" type="button" data-tool="live" aria-label="Live"><svg class="ic ln" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.2"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M6 6a9 9 0 0 0 0 12M18 6a9 9 0 0 1 0 12"/></svg><span>Live</span></button>
   </div>
   <button class="cf-export" type="button"><span>Export</span></button>
@@ -2924,11 +2984,28 @@ function showYtFallback(id){
   $('ytHelp').classList.remove('on');
   var st=$('ytStatus'); st.className='yt-status err'; st.textContent='Preview blocked by YouTube';
 }
+/* Stage preview: the moment a link loads, a cued YouTube
+   embed takes over the Preview stage and the import gate
+   steps aside (its status line stays as a strip over the
+   bottom of the embed, mirroring the server progress while
+   Auto clip runs in the background). Clearing the link or
+   pasting an invalid one brings the gate back. */
+var stageYtId='';
+function syncStageYt(id){
+  var fr=$('stageYtFrame'); if(!fr) return;
+  if(id){
+    if(stageYtId!==id){ fr.src='https://www.youtube.com/embed/'+id+'?rel=0&playsinline=1'; stageYtId=id; }
+    stage.classList.add('yt-on');
+  }else{
+    stageYtId=''; fr.removeAttribute('src'); stage.classList.remove('yt-on');
+  }
+}
 function loadYouTube(){
   var raw=$('ytInput').value, id=ytIdFromUrl(raw), st=$('ytStatus');
-  if(!raw.trim()){ st.className='yt-status'; st.textContent=''; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); ytId=''; autoClipForId=''; if(typeof updateServerClipVisibility==='function') updateServerClipVisibility(); return; }
-  if(!id){ st.className='yt-status err'; st.textContent='Invalid link'; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); ytId=''; autoClipForId=''; if(typeof updateServerClipVisibility==='function') updateServerClipVisibility(); return; }
+  if(!raw.trim()){ st.className='yt-status'; st.textContent=''; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); ytId=''; syncStageYt(''); autoClipForId=''; if(typeof updateServerClipVisibility==='function') updateServerClipVisibility(); return; }
+  if(!id){ st.className='yt-status err'; st.textContent='Invalid link'; $('ytPreview').classList.remove('on'); $('ytHelp').classList.remove('on'); hideYtFallback(); ytId=''; syncStageYt(''); autoClipForId=''; if(typeof updateServerClipVisibility==='function') updateServerClipVisibility(); return; }
   ytId=id;
+  syncStageYt(id);
   hideYtFallback();
   $('ytOpenBtn2').href='https://www.youtube.com/watch?v='+id;
   $('ytPreview').classList.add('on');
@@ -3088,7 +3165,7 @@ async function handleServerDone(data){
   });
   if(!made.length){ handleServerFailed('Server finished but no clips were returned'); return; }
   if(aiEnabled){
-    setServerStatus('Server clips ready — Free AI hooks likh raha hai...');
+    setServerStatus('Server clips ready — writing Free AI hooks...');
     try{
       var hooks=await aiHooksForTimes(made.map(function(m){ return m.s; }));
       made.forEach(function(m){ var hk=hooks[fmt(m.s)]; if(hk){ m.hook=hk; m.name=(m.name||'Server clip')+' · '+hk; } });
@@ -3117,13 +3194,16 @@ function pollServerJob(workerUrl,jobId){
       if(status==='failed'||status==='error'||status==='failure'||data.failed===true){ handleServerFailed(data.error||data.message||'Server job failed'); return; }
       if(!status && serverClipItems(data).length){ handleServerDone(data); return; }
       var elapsed=Math.floor((Date.now()-serverJobStartedAt)/1000);
-      var base=(data.message?String(data.message):'Server par ban raha hai...');
+      var base;
+      if(status==='queued') base='Waiting for a free server...';
+      else if(status==='running'||status==='in_progress') base='Clipping on the server...';
+      else base=(data.message?String(data.message):'Clipping on the server...');
       setServerStatus(base+' · '+fmt(elapsed)+' elapsed · job '+jobId);
     }).catch(function(err){
       /* One failed poll must not kill the job — GitHub Actions is
          still running. Only surface it; the next tick retries. */
       var elapsed=Math.floor((Date.now()-serverJobStartedAt)/1000);
-      setServerStatus('Server par ban raha hai... · '+fmt(elapsed)+' elapsed · job '+jobId);
+      setServerStatus('Clipping on the server... · '+fmt(elapsed)+' elapsed · job '+jobId);
     });
   };
   check();
@@ -3139,7 +3219,7 @@ function startServerClip(){
   if(!ytId){ toast('Load a YouTube link first'); return; }
   clearServerPoll();
   var btn=$('serverClipBtn'); if(btn) btn.disabled=true;
-  setServerStatus('Server par ban raha hai...');
+  setServerStatus('Clipping on the server...');
   var rawUrl=(($('ytInput').value||'').trim())||('https://www.youtube.com/watch?v='+ytId);
   fetch(workerUrl+'/api/clip',{
     method:'POST',
@@ -3156,10 +3236,10 @@ function startServerClip(){
       handleServerFailed(data.error||data.message||'Server did not return a job id');
       return;
     }
-    setServerStatus('Job started · '+jobId+' — server par ban raha hai...');
+    setServerStatus('Job started · '+jobId+' — clipping on the server...');
     pollServerJob(workerUrl,jobId);
   }).catch(function(err){
-    handleServerFailed(err&&err.message?err.message:'Server se connect nahi ho saka');
+    handleServerFailed(err&&err.message?err.message:'Could not connect to the server');
   });
 }
 (function initServerUrlField(){
@@ -5577,7 +5657,7 @@ renderTimeline(true);
     setInterval(syncSpk,900); syncSpk();
   }
   /* Desktop tool bar: give every icon a Photoshop-style name popup */
-  var tips={media:'Media — add your video',cut:'Cut — find moments & trim',captions:'Captions — auto subtitles',audio:'Audio — volume, voice & music',text:'Text — titles on the video',style:'Style — caption look & hook',size:'Size — format & crop',live:'Live — clip from a stream'};
+  var tips={media:'Media — add your video',cut:'Cut — find moments & trim',captions:'Captions — auto subtitles',audio:'Audio — volume, voice & music',text:'Text — titles on the video',style:'Style — caption look & hook',size:'Size — format & size',crop:'Crop — caption, motion crop & framing',live:'Live — clip from a stream'};
   document.querySelectorAll('.cf-tab').forEach(function(t){
     var k=t.getAttribute('data-tool');
     if(k&&tips[k]&&!t.getAttribute('data-tip')) t.setAttribute('data-tip',tips[k]);
@@ -5722,7 +5802,8 @@ renderTimeline(true);
     audio:document.querySelector('.insp-panel[data-panel="sound"]'),
     text:document.querySelector('.insp-panel[data-panel="text"]'),
     style:document.querySelector('.insp-panel[data-panel="style"]'),
-    size:document.getElementById('secInspector'),
+    size:document.querySelector('.format-card'),
+    crop:document.getElementById('secInspector'),
     live:document.querySelector('.live-card'),
     export:document.querySelector('.clips-strip')
   };
